@@ -1,5 +1,7 @@
---// NaitHub - Script Base com botão de minimizar
+--// NaitHub - Script Hub com animações e funções básicas
 -- Feito para ser simples, bonito e expansível 😎
+
+local TweenService = game:GetService("TweenService")
 
 -- Criando ScreenGui
 local NaitHub = Instance.new("ScreenGui")
@@ -9,12 +11,15 @@ NaitHub.Parent = game:GetService("CoreGui")
 
 -- Janela principal
 local MainFrame = Instance.new("Frame", NaitHub)
-MainFrame.Size = UDim2.new(0, 600, 0, 350)
+MainFrame.Size = UDim2.new(0, 0, 0, 0)
 MainFrame.Position = UDim2.new(0.5, -300, 0.5, -175)
 MainFrame.BackgroundColor3 = Color3.fromRGB(25, 0, 40)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true -- arrastar hub
+
+-- Animação de entrada
+TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, 600, 0, 350)}):Play()
 
 -- Header
 local Header = Instance.new("Frame", MainFrame)
@@ -31,7 +36,7 @@ Title.Font = Enum.Font.GothamBold
 Title.TextSize = 20
 Title.BackgroundTransparency = 1
 
--- Botão de minimizar
+-- Botão minimizar
 local MinBtn = Instance.new("TextButton", Header)
 MinBtn.Size = UDim2.new(0, 40, 0, 40)
 MinBtn.Position = UDim2.new(1, -45, 0, 0)
@@ -41,6 +46,17 @@ MinBtn.Font = Enum.Font.GothamBold
 MinBtn.TextSize = 22
 MinBtn.BackgroundColor3 = Color3.fromRGB(120, 0, 180)
 MinBtn.BorderSizePixel = 0
+
+-- Botão fechar
+local CloseBtn = Instance.new("TextButton", Header)
+CloseBtn.Size = UDim2.new(0, 40, 0, 40)
+CloseBtn.Position = UDim2.new(1, -90, 0, 0)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 22
+CloseBtn.BackgroundColor3 = Color3.fromRGB(180, 0, 80)
+CloseBtn.BorderSizePixel = 0
 
 -- Menu lateral
 local SideMenu = Instance.new("Frame", MainFrame)
@@ -90,7 +106,7 @@ local function CreatePage(name)
 
     local label = Instance.new("TextLabel", page)
     label.Text = name .. " Page"
-    label.Size = UDim2.new(1, 0, 1, 0)
+    label.Size = UDim2.new(1, 0, 0, 30)
     label.TextColor3 = Color3.fromRGB(200, 150, 255)
     label.BackgroundTransparency = 1
     label.Font = Enum.Font.GothamBold
@@ -127,13 +143,55 @@ local minimized = false
 MinBtn.MouseButton1Click:Connect(function()
     minimized = not minimized
     if minimized then
+        TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 200, 0, 40)}):Play()
         SideMenu.Visible = false
         Pages.Visible = false
-        MainFrame.Size = UDim2.new(0, 200, 0, 40)
     else
+        TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 600, 0, 350)}):Play()
+        task.wait(0.3)
         SideMenu.Visible = true
         Pages.Visible = true
-        MainFrame.Size = UDim2.new(0, 600, 0, 350)
+    end
+end)
+
+-- Função do botão fechar
+CloseBtn.MouseButton1Click:Connect(function()
+    TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+    task.wait(0.3)
+    NaitHub:Destroy()
+end)
+
+--// Funções de Teste no Farm Page
+local SpeedBtn = Instance.new("TextButton", FarmPage)
+SpeedBtn.Text = "Speed +"
+SpeedBtn.Size = UDim2.new(0, 120, 0, 35)
+SpeedBtn.Position = UDim2.new(0, 20, 0, 60)
+SpeedBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 160)
+SpeedBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedBtn.Font = Enum.Font.GothamBold
+SpeedBtn.TextSize = 16
+
+local JumpBtn = Instance.new("TextButton", FarmPage)
+JumpBtn.Text = "Jump +"
+JumpBtn.Size = UDim2.new(0, 120, 0, 35)
+JumpBtn.Position = UDim2.new(0, 20, 0, 110)
+JumpBtn.BackgroundColor3 = Color3.fromRGB(100, 0, 160)
+JumpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+JumpBtn.Font = Enum.Font.GothamBold
+JumpBtn.TextSize = 16
+
+-- Funcionalidade dos botões
+SpeedBtn.MouseButton1Click:Connect(function()
+    local plr = game.Players.LocalPlayer
+    if plr and plr.Character and plr.Character:FindFirstChild("Humanoid") then
+        plr.Character.Humanoid.WalkSpeed = plr.Character.Humanoid.WalkSpeed + 10
+    end
+end)
+
+JumpBtn.MouseButton1Click:Connect(function()
+    local plr = game.Players.LocalPlayer
+    if plr and plr.Character and plr.Character:FindFirstChild("Humanoid") then
+        plr.Character.Humanoid.JumpPower = plr.Character.Humanoid.JumpPower + 20
     end
 end)
 
