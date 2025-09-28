@@ -1,10 +1,9 @@
---// NaitHub Premium - Design Melhorado
+--// NaitHub Premium - Versão Corrigida
 -- by chat 😎
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -21,8 +20,6 @@ local function AddShadow(obj)
     shadow.Image = "rbxassetid://5028857084"
     shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
     shadow.ImageTransparency = 0.7
-    shadow.ScaleType = Enum.ScaleType.Slice
-    shadow.SliceCenter = Rect.new(49, 49, 450, 450)
     return shadow
 end
 
@@ -63,20 +60,19 @@ MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.ZIndex = 5
-MainFrame.ClipsDescendants = true
 
 Roundify(MainFrame, 15)
 AddShadow(MainFrame)
 AddGradient(MainFrame, Color3.fromRGB(20, 20, 30), Color3.fromRGB(30, 15, 45), 45)
 
--- Animação de entrada suave
+-- Animação de entrada
 local openTween = TweenService:Create(MainFrame, 
     TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), 
     {Size = UDim2.new(0, 700, 0, 400)}
 )
 openTween:Play()
 
--- Header moderno
+-- Header
 local Header = Instance.new("Frame")
 Header.Name = "Header"
 Header.Parent = MainFrame
@@ -90,25 +86,13 @@ Roundify(Header, 15)
 AddShadow(Header)
 AddGradient(Header, Color3.fromRGB(80, 40, 120), Color3.fromRGB(60, 30, 90), 90)
 
--- Título com ícone
-local TitleIcon = Instance.new("TextLabel")
-TitleIcon.Name = "TitleIcon"
-TitleIcon.Parent = Header
-TitleIcon.Size = UDim2.new(0, 30, 0, 30)
-TitleIcon.Position = UDim2.new(0, 15, 0.5, -15)
-TitleIcon.Text = "⚡"
-TitleIcon.TextColor3 = Color3.fromRGB(255, 200, 255)
-TitleIcon.TextSize = 24
-TitleIcon.Font = Enum.Font.GothamBold
-TitleIcon.BackgroundTransparency = 1
-TitleIcon.ZIndex = 7
-
+-- Título
 local Title = Instance.new("TextLabel")
 Title.Name = "Title"
 Title.Parent = Header
-Title.Text = "NaitHub Premium"
+Title.Text = "⚡ NaitHub Premium"
 Title.Size = UDim2.new(0, 300, 1, 0)
-Title.Position = UDim2.new(0, 55, 0, 0)
+Title.Position = UDim2.new(0, 20, 0, 0)
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Font = Enum.Font.GothamBold
@@ -116,7 +100,7 @@ Title.TextSize = 18
 Title.BackgroundTransparency = 1
 Title.ZIndex = 7
 
--- Botão minimizar melhorado
+-- Botão minimizar
 local MinBtn = Instance.new("TextButton")
 MinBtn.Name = "MinBtn"
 MinBtn.Parent = Header
@@ -134,7 +118,7 @@ MinBtn.ZIndex = 7
 Roundify(MinBtn, 8)
 AddShadow(MinBtn)
 
--- Botão fechar melhorado
+-- Botão fechar
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Name = "CloseBtn"
 CloseBtn.Parent = Header
@@ -152,7 +136,7 @@ CloseBtn.ZIndex = 7
 Roundify(CloseBtn, 8)
 AddShadow(CloseBtn)
 
--- Menu lateral moderno
+-- Menu lateral
 local SideMenu = Instance.new("Frame")
 SideMenu.Name = "SideMenu"
 SideMenu.Parent = MainFrame
@@ -166,7 +150,7 @@ Roundify(SideMenu, 12)
 AddShadow(SideMenu)
 AddGradient(SideMenu, Color3.fromRGB(25, 25, 40), Color3.fromRGB(35, 20, 50), 180)
 
--- Função para criar botões com animação melhorada
+-- Função para criar botões do menu
 local function CreateMenuButton(name, icon, y)
     local btn = Instance.new("TextButton")
     btn.Name = name .. "Btn"
@@ -187,18 +171,15 @@ local function CreateMenuButton(name, icon, y)
     AddShadow(btn)
     AddGradient(btn, Color3.fromRGB(60, 40, 80), Color3.fromRGB(40, 25, 60), 45)
 
-    -- Animações de hover
     btn.MouseEnter:Connect(function()
         TweenService:Create(btn, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
-            BackgroundColor3 = Color3.fromRGB(80, 50, 120),
-            Size = UDim2.new(1, -15, 0, 40)
+            BackgroundColor3 = Color3.fromRGB(80, 50, 120)
         }):Play()
     end)
 
     btn.MouseLeave:Connect(function()
         TweenService:Create(btn, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
-            BackgroundColor3 = Color3.fromRGB(50, 30, 70),
-            Size = UDim2.new(1, -20, 0, 40)
+            BackgroundColor3 = Color3.fromRGB(50, 30, 70)
         }):Play()
     end)
 
@@ -237,13 +218,11 @@ local function CreatePage(name)
     page.BorderSizePixel = 0
     page.ScrollBarThickness = 6
     page.ScrollBarImageColor3 = Color3.fromRGB(100, 60, 140)
-    page.CanvasSize = UDim2.new(0, 0, 0, 0)
-    page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    page.CanvasSize = UDim2.new(0, 0, 0, 500)
     page.ScrollingDirection = Enum.ScrollingDirection.Y
     page.Visible = false
     page.ZIndex = 7
 
-    -- Título da página
     local pageTitle = Instance.new("TextLabel")
     pageTitle.Name = "PageTitle"
     pageTitle.Parent = page
@@ -265,33 +244,9 @@ local InicioPage = CreatePage("Início")
 local FarmPage = CreatePage("Farm")
 local TeleportPage = CreatePage("Teleport")
 local ESPPage = CreatePage("ESP")
-local ConfigPage = CreatePage("Configurações")
+local ConfigPage = CreatePage("Config")
 
--- Função melhorada para trocar páginas
-local currentPage = nil
-local function ShowPage(page)
-    if currentPage == page then return end
-    
-    if currentPage then
-        TweenService:Create(currentPage, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {
-            Position = UDim2.new(-1, 0, 0, 0)
-        }):Play()
-        
-        task.wait(0.1)
-        currentPage.Visible = false
-        currentPage.Position = UDim2.new(1, 0, 0, 0)
-    end
-    
-    currentPage = page
-    page.Visible = true
-    page.Position = UDim2.new(1, 0, 0, 0)
-    
-    TweenService:Create(page, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
-        Position = UDim2.new(0, 0, 0, 0)
-    }):Play()
-end
-
--- Função para criar slider moderno e funcional
+-- Função para criar slider
 local function CreateSlider(parent, labelText, min, max, default, callback)
     local sliderFrame = Instance.new("Frame")
     sliderFrame.Name = labelText .. "Slider"
@@ -304,9 +259,7 @@ local function CreateSlider(parent, labelText, min, max, default, callback)
     
     Roundify(sliderFrame, 12)
     AddShadow(sliderFrame)
-    AddGradient(sliderFrame, Color3.fromRGB(45, 45, 65), Color3.fromRGB(35, 35, 55), 90)
 
-    -- Label do slider
     local label = Instance.new("TextLabel")
     label.Name = "Label"
     label.Parent = sliderFrame
@@ -320,7 +273,6 @@ local function CreateSlider(parent, labelText, min, max, default, callback)
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.ZIndex = 9
 
-    -- Barra do slider
     local sliderBar = Instance.new("Frame")
     sliderBar.Name = "SliderBar"
     sliderBar.Parent = sliderFrame
@@ -332,7 +284,6 @@ local function CreateSlider(parent, labelText, min, max, default, callback)
     
     Roundify(sliderBar, 3)
 
-    -- Preenchimento do slider
     local sliderFill = Instance.new("Frame")
     sliderFill.Name = "SliderFill"
     sliderFill.Parent = sliderBar
@@ -343,9 +294,7 @@ local function CreateSlider(parent, labelText, min, max, default, callback)
     sliderFill.ZIndex = 10
     
     Roundify(sliderFill, 3)
-    AddGradient(sliderFill, Color3.fromRGB(140, 100, 220), Color3.fromRGB(100, 60, 180), 0)
 
-    -- Botão do slider
     local sliderButton = Instance.new("TextButton")
     sliderButton.Name = "SliderButton"
     sliderButton.Parent = sliderBar
@@ -359,26 +308,23 @@ local function CreateSlider(parent, labelText, min, max, default, callback)
     
     Roundify(sliderButton, 10)
     AddShadow(sliderButton)
-    AddGradient(sliderButton, Color3.fromRGB(255, 255, 255), Color3.fromRGB(200, 200, 200), 45)
 
-    -- Lógica do slider
     local dragging = false
     local currentValue = default
 
-    local function updateSlider(input)
-        local relativeX = math.clamp((input.Position.X - sliderBar.AbsolutePosition.X) / sliderBar.AbsoluteSize.X, 0, 1)
+    local function updateSlider(inputPos)
+        local relativeX = math.clamp((inputPos - sliderBar.AbsolutePosition.X) / sliderBar.AbsoluteSize.X, 0, 1)
         local value = math.floor(min + (max - min) * relativeX)
         
         if value ~= currentValue then
             currentValue = value
             label.Text = labelText .. ": " .. value
             
-            -- Animações suaves
-            TweenService:Create(sliderFill, TweenInfo.new(0.1, Enum.EasingStyle.Quad), {
+            TweenService:Create(sliderFill, TweenInfo.new(0.1), {
                 Size = UDim2.new(relativeX, 0, 1, 0)
             }):Play()
             
-            TweenService:Create(sliderButton, TweenInfo.new(0.1, Enum.EasingStyle.Quad), {
+            TweenService:Create(sliderButton, TweenInfo.new(0.1), {
                 Position = UDim2.new(relativeX, -10, 0.5, -10)
             }):Play()
             
@@ -388,39 +334,41 @@ local function CreateSlider(parent, labelText, min, max, default, callback)
 
     sliderButton.MouseButton1Down:Connect(function()
         dragging = true
-        TweenService:Create(sliderButton, TweenInfo.new(0.1), {Size = UDim2.new(0, 24, 0, 24)}):Play()
     end)
 
     UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 and dragging then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = false
-            TweenService:Create(sliderButton, TweenInfo.new(0.1), {Size = UDim2.new(0, 20, 0, 20)}):Play()
         end
     end)
 
     UserInputService.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            updateSlider(input)
+            updateSlider(input.Position.X)
         end
     end)
 
-    sliderBar.MouseButton1Down:Connect(function()
-        updateSlider(UserInputService:GetMouseLocation())
-    end)
-
-    -- Efeito hover
-    sliderButton.MouseEnter:Connect(function()
-        if not dragging then
-            TweenService:Create(sliderButton, TweenInfo.new(0.2), {Size = UDim2.new(0, 22, 0, 22)}):Play()
-        end
-    end)
-
-    sliderButton.MouseLeave:Connect(function()
-        if not dragging then
-            TweenService:Create(sliderButton, TweenInfo.new(0.2), {Size = UDim2.new(0, 20, 0, 20)}):Play()
+    sliderBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            updateSlider(input.Position.X)
         end
     end)
 end
+
+-- Adicionando conteúdo na página Início
+local welcomeText = Instance.new("TextLabel")
+welcomeText.Parent = InicioPage
+welcomeText.Text = "Bem-vindo ao NaitHub Premium!\n\nEste é um hub completo com várias funcionalidades para melhorar sua experiência no jogo.\n\n📌 Navegue pelas abas do menu lateral\n⚡ Use os sliders na aba Farm para ajustar velocidade\n🌐 Explore as outras funcionalidades"
+welcomeText.Size = UDim2.new(1, -40, 0, 200)
+welcomeText.Position = UDim2.new(0, 20, 0, 60)
+welcomeText.TextColor3 = Color3.fromRGB(200, 200, 200)
+welcomeText.BackgroundTransparency = 1
+welcomeText.Font = Enum.Font.Gotham
+welcomeText.TextSize = 16
+welcomeText.TextXAlignment = Enum.TextXAlignment.Left
+welcomeText.TextYAlignment = Enum.TextYAlignment.Top
+welcomeText.TextWrapped = true
+welcomeText.ZIndex = 8
 
 -- Adicionando sliders na Farm Page
 CreateSlider(FarmPage, "Speed", 16, 300, 16, function(value)
@@ -435,6 +383,59 @@ CreateSlider(FarmPage, "Jump Power", 50, 300, 50, function(value)
     end
 end)
 
+-- Adicionando conteúdo nas outras páginas
+local teleportText = Instance.new("TextLabel")
+teleportText.Parent = TeleportPage
+teleportText.Text = "🌐 Teleport\n\nFuncionalidades de teleporte serão adicionadas em breve!\nEsta seção permitirá teleporte rápido para locais importantes do jogo."
+teleportText.Size = UDim2.new(1, -40, 0, 150)
+teleportText.Position = UDim2.new(0, 20, 0, 60)
+teleportText.TextColor3 = Color3.fromRGB(200, 200, 200)
+teleportText.BackgroundTransparency = 1
+teleportText.Font = Enum.Font.Gotham
+teleportText.TextSize = 16
+teleportText.TextXAlignment = Enum.TextXAlignment.Left
+teleportText.TextYAlignment = Enum.TextYAlignment.Top
+teleportText.TextWrapped = true
+teleportText.ZIndex = 8
+
+local espText = Instance.new("TextLabel")
+espText.Parent = ESPPage
+espText.Text = "👁️ ESP\n\nFuncionalidades de ESP serão implementadas aqui!\nVocê poderá visualizar players, itens e outros elementos importantes através de paredes."
+espText.Size = UDim2.new(1, -40, 0, 150)
+espText.Position = UDim2.new(0, 20, 0, 60)
+espText.TextColor3 = Color3.fromRGB(200, 200, 200)
+espText.BackgroundTransparency = 1
+espText.Font = Enum.Font.Gotham
+espText.TextSize = 16
+espText.TextXAlignment = Enum.TextXAlignment.Left
+espText.TextYAlignment = Enum.TextYAlignment.Top
+espText.TextWrapped = true
+espText.ZIndex = 8
+
+local configText = Instance.new("TextLabel")
+configText.Parent = ConfigPage
+configText.Text = "⚙️ Configurações\n\nAqui você poderá personalizar o hub:\n• Alterar cores do tema\n• Ajustar transparência\n• Configurar teclas de atalho\n• Salvar suas preferências"
+configText.Size = UDim2.new(1, -40, 0, 150)
+configText.Position = UDim2.new(0, 20, 0, 60)
+configText.TextColor3 = Color3.fromRGB(200, 200, 200)
+configText.BackgroundTransparency = 1
+configText.Font = Enum.Font.Gotham
+configText.TextSize = 16
+configText.TextXAlignment = Enum.TextXAlignment.Left
+configText.TextYAlignment = Enum.TextYAlignment.Top
+configText.TextWrapped = true
+configText.ZIndex = 8
+
+-- Sistema de troca de páginas
+local currentPage = nil
+local function ShowPage(page)
+    if currentPage then
+        currentPage.Visible = false
+    end
+    currentPage = page
+    page.Visible = true
+end
+
 -- Conectar botões às páginas
 InicioBtn.MouseButton1Click:Connect(function() ShowPage(InicioPage) end)
 FarmBtn.MouseButton1Click:Connect(function() ShowPage(FarmPage) end)
@@ -445,41 +446,40 @@ ConfigBtn.MouseButton1Click:Connect(function() ShowPage(ConfigPage) end)
 -- Mostrar página inicial
 ShowPage(InicioPage)
 
--- Funcionalidade de minimizar melhorada
+-- Funcionalidade de minimizar CORRIGIDA
 local minimized = false
 MinBtn.MouseButton1Click:Connect(function()
     minimized = not minimized
     
-    local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-    
     if minimized then
         MinBtn.Text = "☐"
-        TweenService:Create(MainFrame, tweenInfo, {Size = UDim2.new(0, 350, 0, 50)}):Play()
+        TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back), {
+            Size = UDim2.new(0, 350, 0, 50)
+        }):Play()
         SideMenu.Visible = false
         Pages.Visible = false
     else
         MinBtn.Text = "─"
-        TweenService:Create(MainFrame, tweenInfo, {Size = UDim2.new(0, 700, 0, 400)}):Play()
-        task.wait(0.4)
+        TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back), {
+            Size = UDim2.new(0, 700, 0, 400)
+        }):Play()
+        task.wait(0.2)
         SideMenu.Visible = true
         Pages.Visible = true
     end
 end)
 
--- Fechar com animação suave
+-- Funcionalidade de fechar CORRIGIDA
 CloseBtn.MouseButton1Click:Connect(function()
-    local closeTween = TweenService:Create(MainFrame, 
-        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), 
-        {Size = UDim2.new(0, 0, 0, 0)}
-    )
-    closeTween:Play()
+    TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+        Size = UDim2.new(0, 0, 0, 0)
+    }):Play()
     
-    closeTween.Completed:Connect(function()
-        NaitHub:Destroy()
-    end)
+    task.wait(0.5)
+    NaitHub:Destroy()
 end)
 
--- Efeitos hover nos botões do header
+-- Efeitos hover
 MinBtn.MouseEnter:Connect(function()
     TweenService:Create(MinBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(120, 80, 160)}):Play()
 end)
@@ -495,4 +495,4 @@ CloseBtn.MouseLeave:Connect(function()
 end)
 
 print("✨ NaitHub Premium v2.0 carregado com sucesso!")
-print("🎨 Design melhorado e sliders funcionais implementados!")
+print("🔧 Botões corrigidos e conteúdo adicionado!")
