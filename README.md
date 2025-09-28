@@ -261,7 +261,7 @@ local function CreatePage(name)
     page.BorderSizePixel = 0
     page.ScrollBarThickness = 8
     page.ScrollBarImageColor3 = Color3.fromRGB(100, 60, 140)
-    page.CanvasSize = UDim2.new(0, 0, 0, 800)
+    page.CanvasSize = UDim2.new(0, 0, 0, 1200)
     page.ScrollingDirection = Enum.ScrollingDirection.Y
     page.Visible = false
     page.ZIndex = 7
@@ -410,6 +410,142 @@ welcomeText.TextYAlignment = Enum.TextYAlignment.Top
 welcomeText.TextWrapped = true
 welcomeText.ZIndex = 8
 
+-- Configurações de Performance
+local function SetLowGraphics(enabled)
+    local settings = UserSettings():GetService("UserGameSettings")
+    
+    if enabled then
+        -- Configurações de baixa qualidade
+        settings.SavedQualityLevel = Enum.SavedQualitySetting.QualityLevel1
+        settings.MasterVolume = 0.1
+        
+        -- Remover texturas e efeitos
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("Decal") or obj:IsA("Texture") then
+                obj.Transparency = 1
+            elseif obj:IsA("Explosion") or obj:IsA("Fire") or obj:IsA("Smoke") then
+                obj:Destroy()
+            elseif obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then
+                obj.Enabled = false
+            elseif obj:IsA("ParticleEmitter") then
+                obj.Enabled = false
+            end
+        end
+        
+        -- Configurações de renderização
+        local lighting = game:GetService("Lighting")
+        lighting.GlobalShadows = false
+        lighting.FogEnd = 9e9
+        lighting.Brightness = 2
+        
+    else
+        -- Restaurar configurações normais
+        settings.SavedQualityLevel = Enum.SavedQualitySetting.Automatic
+        settings.MasterVolume = 0.5
+        
+        -- Restaurar efeitos visuais
+        local lighting = game:GetService("Lighting")
+        lighting.GlobalShadows = true
+        lighting.FogEnd = 100000
+        lighting.Brightness = 1
+    end
+end
+
+local function ToggleAntiLag(enabled)
+    if enabled then
+        -- Reduzir qualidade gráfica drasticamente
+        workspace.StreamingEnabled = true
+        workspace.StreamingTargetRadius = 50
+        workspace.StreamingMinRadius = 25
+        
+        -- Remover efeitos desnecessários
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("BasePart") then
+                obj.Material = Enum.Material.Plastic
+                obj.Reflectance = 0
+            end
+        end
+    else
+        -- Restaurar configurações
+        workspace.StreamingTargetRadius = 1024
+        workspace.StreamingMinRadius = 64
+    end
+end
+
+-- Adicionando configurações na Config Page
+CreateToggle(ConfigPage, "🎮 FPS Boost (Remove Texturas)", 60, function(enabled)
+    SetLowGraphics(enabled)
+    if enabled then
+        print("✅ FPS Boost ativado! Texturas removidas.")
+    else
+        print("❌ FPS Boost desativado! Texturas restauradas.")
+    end
+end)
+
+CreateToggle(ConfigPage, "⚡ Anti-Lag (Performance Max)", 130, function(enabled)
+    ToggleAntiLag(enabled)
+    if enabled then
+        print("✅ Anti-Lag ativado! Performance maximizada.")
+    else
+        print("❌ Anti-Lag desativado!")
+    end
+end)
+
+CreateToggle(ConfigPage, "🔇 Silenciar Áudio", 200, function(enabled)
+    local SoundService = game:GetService("SoundService")
+    if enabled then
+        SoundService.RespectFilteringEnabled = false
+        SoundService.AmbientReverb = Enum.ReverbType.NoReverb
+        for _, sound in pairs(workspace:GetDescendants()) do
+            if sound:IsA("Sound") then
+                sound.Volume = 0
+            end
+        end
+        print("🔇 Áudio silenciado!")
+    else
+        for _, sound in pairs(workspace:GetDescendants()) do
+            if sound:IsA("Sound") then
+                sound.Volume = 0.5
+            end
+        end
+        print("🔊 Áudio restaurado!")
+    end
+end)
+
+CreateToggle(ConfigPage, "👻 Invisibilidade (Local)", 270, function(enabled)
+    if LocalPlayer.Character then
+        for _, part in pairs(LocalPlayer.Character:GetChildren()) do
+            if part:IsA("BasePart") or part:IsA("MeshPart") then
+                if enabled then
+                    part.Transparency = 0.8
+                else
+                    part.Transparency = 0
+                end
+            end
+        end
+        if enabled then
+            print("👻 Modo invisível ativado!")
+        else
+            print("👤 Visibilidade restaurada!")
+        end
+    end
+end)
+
+CreateToggle(ConfigPage, "🌙 Modo Escuro (Lighting)", 340, function(enabled)
+    local lighting = game:GetService("Lighting")
+    if enabled then
+        lighting.Brightness = 0
+        lighting.OutdoorAmbient = Color3.fromRGB(0, 0, 0)
+        lighting.Ambient = Color3.fromRGB(0, 0, 0)
+        print("🌙 Modo escuro ativado!")
+    else
+        lighting.Brightness = 1
+        lighting.OutdoorAmbient = Color3.fromRGB(70, 70, 70)
+        lighting.Ambient = Color3.fromRGB(70, 70, 70)
+        print("☀️ Iluminação normal restaurada!")
+    end
+end)
+
 -- Função para criar toggle button
 local function CreateToggle(parent, labelText, yPos, callback)
     local toggleFrame = Instance.new("Frame")
@@ -513,6 +649,53 @@ end
 local autoFarmActive = false
 local autoFarmConnection = nil
 
+local function findCoinInWorkspace()
+    -- Procurar em todas as pastas do workspace
+    local function searchInFolder(folder)
+        for _, obj in pairs(folder:GetChildren()) do
+            -- Procurar por bolas de praia (moedas do MM2)
+            if obj.Name == "Coin_Server" or obj.Name:find("Coin") or obj.Name == "Beach Ball" then
+                if obj:IsA("BasePart") or obj:FindFirstChild("MeshPart") or obj:FindFirstChild("Part") then
+                    return obj
+                end
+            end
+            
+            -- Procurar por modelos que contenham moedas
+            if obj:IsA("Model") or obj:IsA("Folder") then
+                local foundCoin = searchInFolder(obj)
+                if foundCoin then
+                    return foundCoin
+                end
+            end
+            
+            -- Procurar especificamente por bolas de praia
+            if obj:IsA("BasePart") and (obj.Shape == Enum.PartType.Ball or obj.Name:lower():find("ball")) then
+                -- Verificar se é uma moeda baseada no tamanho e cor
+                if obj.Size.X < 5 and obj.Size.Y < 5 and obj.Size.Z < 5 then
+                    return obj
+                end
+            end
+        end
+        return nil
+    end
+    
+    -- Procurar no workspace principal
+    local coin = searchInFolder(workspace)
+    if coin then return coin end
+    
+    -- Procurar em locais específicos do MM2
+    local commonFolders = {"Coins", "Items", "Map", "Game"}
+    for _, folderName in pairs(commonFolders) do
+        local folder = workspace:FindFirstChild(folderName)
+        if folder then
+            local coin = searchInFolder(folder)
+            if coin then return coin end
+        end
+    end
+    
+    return nil
+end
+
 local function startAutoFarm()
     if autoFarmConnection then
         autoFarmConnection:Disconnect()
@@ -531,38 +714,30 @@ local function startAutoFarm()
         end
         
         local humanoidRootPart = character.HumanoidRootPart
+        local coin = findCoinInWorkspace()
         
-        -- Procurar por moedas no workspace
-        for _, obj in pairs(workspace:GetChildren()) do
-            if obj.Name == "Coin" or obj.Name == "CoinContainer" or obj:FindFirstChild("Coin") then
-                local coin = obj.Name == "Coin" and obj or obj:FindFirstChild("Coin")
-                
-                if coin and coin:FindFirstChild("CFrame") then
-                    -- Teleportar para a moeda
-                    humanoidRootPart.CFrame = coin.CFrame.Value + Vector3.new(0, 5, 0)
-                    wait(0.1)
-                    break
-                elseif coin and coin.CFrame then
-                    -- Caso a moeda tenha CFrame diretamente
-                    humanoidRootPart.CFrame = coin.CFrame + Vector3.new(0, 5, 0)
-                    wait(0.1)
-                    break
-                end
+        if coin then
+            local coinPosition
+            
+            -- Obter posição da moeda
+            if coin:IsA("BasePart") then
+                coinPosition = coin.Position
+            elseif coin:FindFirstChild("Part") then
+                coinPosition = coin.Part.Position
+            elseif coin:FindFirstChild("MeshPart") then
+                coinPosition = coin.MeshPart.Position
+            elseif coin.PrimaryPart then
+                coinPosition = coin.PrimaryPart.Position
             end
             
-            -- Procurar por moedas em outros locais comuns do MM2
-            if obj.Name:lower():find("coin") or obj.Name:lower():find("money") then
-                if obj:FindFirstChild("CFrame") then
-                    humanoidRootPart.CFrame = obj.CFrame.Value + Vector3.new(0, 5, 0)
-                    wait(0.1)
-                    break
-                elseif obj.CFrame then
-                    humanoidRootPart.CFrame = obj.CFrame + Vector3.new(0, 5, 0)
-                    wait(0.1)
-                    break
-                end
+            if coinPosition then
+                -- Teleportar para a moeda
+                humanoidRootPart.CFrame = CFrame.new(coinPosition + Vector3.new(0, 3, 0))
+                task.wait(0.1)
             end
         end
+        
+        task.wait(0.1) -- Pequena pausa para performance
     end)
 end
 
