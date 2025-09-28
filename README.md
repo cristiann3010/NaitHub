@@ -261,7 +261,7 @@ local function CreatePage(name)
     page.BorderSizePixel = 0
     page.ScrollBarThickness = 8
     page.ScrollBarImageColor3 = Color3.fromRGB(100, 60, 140)
-    page.CanvasSize = UDim2.new(0, 0, 0, 500)
+    page.CanvasSize = UDim2.new(0, 0, 0, 800)
     page.ScrollingDirection = Enum.ScrollingDirection.Y
     page.Visible = false
     page.ZIndex = 7
@@ -409,6 +409,181 @@ welcomeText.TextXAlignment = Enum.TextXAlignment.Left
 welcomeText.TextYAlignment = Enum.TextYAlignment.Top
 welcomeText.TextWrapped = true
 welcomeText.ZIndex = 8
+
+-- Função para criar toggle button
+local function CreateToggle(parent, labelText, yPos, callback)
+    local toggleFrame = Instance.new("Frame")
+    toggleFrame.Name = labelText .. "Toggle"
+    toggleFrame.Parent = parent
+    toggleFrame.Size = UDim2.new(1, -40, 0, 60)
+    toggleFrame.Position = UDim2.new(0, 20, 0, yPos)
+    toggleFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+    toggleFrame.BorderSizePixel = 0
+    toggleFrame.ZIndex = 8
+    
+    Roundify(toggleFrame, 12)
+    AddShadow(toggleFrame)
+
+    local label = Instance.new("TextLabel")
+    label.Name = "Label"
+    label.Parent = toggleFrame
+    label.Text = labelText
+    label.Size = UDim2.new(1, -80, 1, 0)
+    label.Position = UDim2.new(0, 15, 0, 0)
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.TextYAlignment = Enum.TextYAlignment.Center
+    label.ZIndex = 9
+
+    local toggleButton = Instance.new("TextButton")
+    toggleButton.Name = "ToggleButton"
+    toggleButton.Parent = toggleFrame
+    toggleButton.Size = UDim2.new(0, 40, 0, 40)
+    toggleButton.Position = UDim2.new(1, -50, 0.5, -20)
+    toggleButton.BackgroundColor3 = Color3.fromRGB(80, 80, 100)
+    toggleButton.BorderSizePixel = 0
+    toggleButton.Text = ""
+    toggleButton.ZIndex = 10
+    toggleButton.Active = true
+    
+    Roundify(toggleButton, 8)
+    AddShadow(toggleButton)
+
+    local checkmark = Instance.new("TextLabel")
+    checkmark.Name = "Checkmark"
+    checkmark.Parent = toggleButton
+    checkmark.Size = UDim2.new(1, 0, 1, 0)
+    checkmark.BackgroundTransparency = 1
+    checkmark.Text = ""
+    checkmark.TextColor3 = Color3.fromRGB(0, 255, 0)
+    checkmark.Font = Enum.Font.GothamBold
+    checkmark.TextSize = 24
+    checkmark.ZIndex = 11
+
+    local isToggled = false
+
+    toggleButton.Activated:Connect(function()
+        isToggled = not isToggled
+        
+        if isToggled then
+            -- Ativado
+            TweenService:Create(toggleButton, TweenInfo.new(0.2), {
+                BackgroundColor3 = Color3.fromRGB(0, 200, 0)
+            }):Play()
+            checkmark.Text = "✓"
+            TweenService:Create(checkmark, TweenInfo.new(0.1), {
+                TextTransparency = 0
+            }):Play()
+        else
+            -- Desativado
+            TweenService:Create(toggleButton, TweenInfo.new(0.2), {
+                BackgroundColor3 = Color3.fromRGB(80, 80, 100)
+            }):Play()
+            checkmark.Text = ""
+            checkmark.TextTransparency = 1
+        end
+        
+        callback(isToggled)
+    end)
+
+    -- Efeito hover
+    toggleButton.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            TweenService:Create(toggleButton, TweenInfo.new(0.1), {
+                Size = UDim2.new(0, 38, 0, 38)
+            }):Play()
+        end
+    end)
+
+    toggleButton.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            TweenService:Create(toggleButton, TweenInfo.new(0.1), {
+                Size = UDim2.new(0, 40, 0, 40)
+            }):Play()
+        end
+    end)
+
+    return toggleFrame, isToggled
+end
+
+-- Auto Farm para Murder Mystery 2
+local autoFarmActive = false
+local autoFarmConnection = nil
+
+local function startAutoFarm()
+    if autoFarmConnection then
+        autoFarmConnection:Disconnect()
+    end
+    
+    autoFarmActive = true
+    
+    autoFarmConnection = game:GetService("RunService").Heartbeat:Connect(function()
+        if not autoFarmActive then
+            return
+        end
+        
+        local character = LocalPlayer.Character
+        if not character or not character:FindFirstChild("HumanoidRootPart") then
+            return
+        end
+        
+        local humanoidRootPart = character.HumanoidRootPart
+        
+        -- Procurar por moedas no workspace
+        for _, obj in pairs(workspace:GetChildren()) do
+            if obj.Name == "Coin" or obj.Name == "CoinContainer" or obj:FindFirstChild("Coin") then
+                local coin = obj.Name == "Coin" and obj or obj:FindFirstChild("Coin")
+                
+                if coin and coin:FindFirstChild("CFrame") then
+                    -- Teleportar para a moeda
+                    humanoidRootPart.CFrame = coin.CFrame.Value + Vector3.new(0, 5, 0)
+                    wait(0.1)
+                    break
+                elseif coin and coin.CFrame then
+                    -- Caso a moeda tenha CFrame diretamente
+                    humanoidRootPart.CFrame = coin.CFrame + Vector3.new(0, 5, 0)
+                    wait(0.1)
+                    break
+                end
+            end
+            
+            -- Procurar por moedas em outros locais comuns do MM2
+            if obj.Name:lower():find("coin") or obj.Name:lower():find("money") then
+                if obj:FindFirstChild("CFrame") then
+                    humanoidRootPart.CFrame = obj.CFrame.Value + Vector3.new(0, 5, 0)
+                    wait(0.1)
+                    break
+                elseif obj.CFrame then
+                    humanoidRootPart.CFrame = obj.CFrame + Vector3.new(0, 5, 0)
+                    wait(0.1)
+                    break
+                end
+            end
+        end
+    end)
+end
+
+local function stopAutoFarm()
+    autoFarmActive = false
+    if autoFarmConnection then
+        autoFarmConnection:Disconnect()
+        autoFarmConnection = nil
+    end
+end
+
+-- Adicionando toggle de Auto Farm na Farm Page
+CreateToggle(FarmPage, "🪙 Auto Farm Coins (MM2)", 60, function(enabled)
+    if enabled then
+        startAutoFarm()
+        print("✅ Auto Farm ativado! Coletando moedas...")
+    else
+        stopAutoFarm()
+        print("❌ Auto Farm desativado!")
+    end
+end)
 
 -- Sliders na Farm Page
 CreateSlider(FarmPage, "Speed", 16, 300, 16, function(value)
