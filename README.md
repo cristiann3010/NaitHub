@@ -365,10 +365,31 @@ welcomeText.TextYAlignment = Enum.TextYAlignment.Top
 welcomeText.TextWrapped = true
 welcomeText.ZIndex = 4
 
--- PÁGINA FARM - Auto Farm + Speed/Jump
+-- PÁGINA FARM - Auto Farm + Auto Gun + Speed/Jump
 local autoFarmEnabled = false
 local autoFarmConnection = nil
+local autoGunEnabled = false
+local autoGunConnection = nil
 
+-- Função para detectar se é inocente
+local function isInnocent()
+    local playerGui = LocalPlayer:FindFirstChild("PlayerGui")
+    if not playerGui then return false end
+    
+    local mainGui = playerGui:FindFirstChild("MainGUI")
+    if not mainGui then return false end
+    
+    local game = mainGui:FindFirstChild("Game")
+    if not game then return false end
+    
+    local roles = game:FindFirstChild("Roles")
+    if not roles then return false end
+    
+    -- Verificar se tem a pistola de inocente disponível
+    return roles:FindFirstChild("Innocent") ~= nil
+end
+
+-- Auto Farm de moedas com hitbox maior
 local function startAutoFarm()
     if autoFarmConnection then autoFarmConnection:Disconnect() end
     autoFarmEnabled = true
@@ -380,18 +401,83 @@ local function startAutoFarm()
         local char = LocalPlayer.Character
         if not char or not char:FindFirstChild("HumanoidRootPart") then return end
         
-        -- Procurar moedas no workspace
+        -- Procurar moedas no workspace com hitbox maior
         for _, obj in pairs(workspace:GetDescendants()) do
             if obj.Name == "Coin_Server" or obj.Name == "Coin" or obj.Name:find("coin") then
                 if obj:IsA("BasePart") and obj.Parent then
                     print("💰 Moeda encontrada: " .. obj.Name)
-                    char.HumanoidRootPart.CFrame = obj.CFrame + Vector3.new(0, 3, 0)
-                    task.wait(0.3)
+                    -- Hitbox maior - teleportar mais longe para segurança
+                    local safeDistance = Vector3.new(
+                        math.random(-8, 8), -- X aleatório para evitar padrão
+                        6, -- Y sempre acima
+                        math.random(-8, 8)  -- Z aleatório
+                    )
+                    char.HumanoidRootPart.CFrame = obj.CFrame + safeDistance
+                    
+                    -- Expandir a hitbox da moeda temporariamente
+                    local originalSize = obj.Size
+                    obj.Size = Vector3.new(8, 8, 8)
+                    
+                    task.wait(0.2)
+                    
+                    -- Restaurar tamanho original (se ainda existir)
+                    if obj.Parent then
+                        obj.Size = originalSize
+                    end
+                    
+                    task.wait(0.1)
                     break
                 end
             end
         end
-        task.wait(0.1)
+        task.wait(0.15)
+    end)
+end
+
+-- Auto Grab de pistola para inocentes
+local function startAutoGun()
+    if autoGunConnection then autoGunConnection:Disconnect() end
+    autoGunEnabled = true
+    print("🔫 Auto Gun iniciado!")
+    
+    autoGunConnection = RunService.Heartbeat:Connect(function()
+        if not autoGunEnabled then return end
+        
+        local char = LocalPlayer.Character
+        if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+        
+        -- Verificar se é inocente e não tem pistola
+        if not isInnocent() then return end
+        
+        local hasGun = false
+        for _, tool in pairs(char:GetChildren()) do
+            if tool:IsA("Tool") and (tool.Name:lower():find("gun") or tool.Name:lower():find("revolver")) then
+                hasGun = true
+                break
+            end
+        end
+        
+        if hasGun then return end
+        
+        -- Procurar pistola no mapa
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("Tool") and (obj.Name:lower():find("gun") or obj.Name:lower():find("revolver") or obj.Name == "GunDrop") then
+                if obj.Parent and obj:FindFirstChild("Handle") then
+                    print("🔫 Pistola encontrada: " .. obj.Name)
+                    -- Teleportar para a pistola
+                    char.HumanoidRootPart.CFrame = obj.Handle.CFrame + Vector3.new(0, 3, 0)
+                    task.wait(0.3)
+                    
+                    -- Tentar equipar a pistola
+                    if obj.Parent == workspace then
+                        obj.Parent = char
+                        task.wait(0.1)
+                    end
+                    break
+                end
+            end
+        end
+        task.wait(0.5)
     end)
 end
 
@@ -404,7 +490,16 @@ local function stopAutoFarm()
     print("❌ Auto Farm parado!")
 end
 
-CreateToggle(FarmPage, "🪙 Auto Farm MM2", 60, function(enabled)
+local function stopAutoGun()
+    autoGunEnabled = false
+    if autoGunConnection then
+        autoGunConnection:Disconnect()
+        autoGunConnection = nil
+    end
+    print("❌ Auto Gun parado!")
+end
+
+CreateToggle(FarmPage, "🪙 Auto Farm MM2 (Safe)", 60, function(enabled)
     if enabled then
         startAutoFarm()
     else
@@ -412,13 +507,21 @@ CreateToggle(FarmPage, "🪙 Auto Farm MM2", 60, function(enabled)
     end
 end)
 
-CreateSlider(FarmPage, "⚡ Speed", 16, 300, 16, 120, function(value)
+CreateToggle(FarmPage, "🔫 Auto Grab Gun (Innocent)", 120, function(enabled)
+    if enabled then
+        startAutoGun()
+    else
+        stopAutoGun()
+    end
+end)
+
+CreateSlider(FarmPage, "⚡ Speed", 16, 300, 16, 180, function(value)
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = value
     end
 end)
 
-CreateSlider(FarmPage, "🦘 Jump Power", 50, 300, 50, 200, function(value)
+CreateSlider(FarmPage, "🦘 Jump Power", 50, 300, 50, 260, function(value)
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.JumpPower = value
     end
