@@ -1,9 +1,10 @@
---// NaitHub Premium - Mobile Version
+--// NaitHub Premium - Mobile Fixed Version
 -- by chat 😎
 
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
 local LocalPlayer = Players.LocalPlayer
 
@@ -66,13 +67,9 @@ AddShadow(MainFrame)
 AddGradient(MainFrame, Color3.fromRGB(20, 20, 30), Color3.fromRGB(30, 15, 45), 45)
 
 -- Animação de entrada
-local openTween = TweenService:Create(MainFrame, 
-    TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), 
-    {Size = UDim2.new(0, 700, 0, 400)}
-)
-openTween:Play()
+TweenService:Create(MainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Back), {Size = UDim2.new(0, 700, 0, 400)}):Play()
 
--- Header (não draggable para não interferir nos botões)
+-- Header
 local Header = Instance.new("Frame")
 Header.Name = "Header"
 Header.Parent = MainFrame
@@ -81,46 +78,10 @@ Header.Position = UDim2.new(0, 0, 0, 0)
 Header.BackgroundColor3 = Color3.fromRGB(60, 30, 90)
 Header.BorderSizePixel = 0
 Header.ZIndex = 6
-Header.Active = false
 
 Roundify(Header, 15)
 AddShadow(Header)
 AddGradient(Header, Color3.fromRGB(80, 40, 120), Color3.fromRGB(60, 30, 90), 90)
-
--- Área draggable separada
-local DragArea = Instance.new("Frame")
-DragArea.Name = "DragArea"
-DragArea.Parent = Header
-DragArea.Size = UDim2.new(1, -150, 1, 0)
-DragArea.Position = UDim2.new(0, 0, 0, 0)
-DragArea.BackgroundTransparency = 1
-DragArea.ZIndex = 6
-
--- Conectar drag manualmente
-local dragStart = nil
-local startPos = nil
-local dragging = false
-
-DragArea.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = true
-        dragStart = input.Position
-        startPos = MainFrame.Position
-    end
-end)
-
-DragArea.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        dragging = false
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-        local delta = input.Position - dragStart
-        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
-end)
 
 -- Título
 local Title = Instance.new("TextLabel")
@@ -136,7 +97,7 @@ Title.TextSize = 18
 Title.BackgroundTransparency = 1
 Title.ZIndex = 7
 
--- Botão minimizar
+-- Botão minimizar - MOBILE FIXED
 local MinBtn = Instance.new("TextButton")
 MinBtn.Name = "MinBtn"
 MinBtn.Parent = Header
@@ -149,12 +110,11 @@ MinBtn.TextSize = 16
 MinBtn.BackgroundColor3 = Color3.fromRGB(100, 60, 140)
 MinBtn.BorderSizePixel = 0
 MinBtn.ZIndex = 10
-MinBtn.Active = true
 
 Roundify(MinBtn, 8)
 AddShadow(MinBtn)
 
--- Botão fechar
+-- Botão fechar - MOBILE FIXED
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Name = "CloseBtn"
 CloseBtn.Parent = Header
@@ -167,7 +127,6 @@ CloseBtn.TextSize = 14
 CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 60, 60)
 CloseBtn.BorderSizePixel = 0
 CloseBtn.ZIndex = 10
-CloseBtn.Active = true
 
 Roundify(CloseBtn, 8)
 AddShadow(CloseBtn)
@@ -186,7 +145,7 @@ Roundify(SideMenu, 12)
 AddShadow(SideMenu)
 AddGradient(SideMenu, Color3.fromRGB(25, 25, 40), Color3.fromRGB(35, 20, 50), 180)
 
--- Função para criar botões do menu (mobile-friendly)
+-- Função para criar botões do menu - MOBILE FIXED
 local function CreateMenuButton(name, icon, y)
     local btn = Instance.new("TextButton")
     btn.Name = name .. "Btn"
@@ -201,30 +160,10 @@ local function CreateMenuButton(name, icon, y)
     btn.TextXAlignment = Enum.TextXAlignment.Left
     btn.ZIndex = 8
     btn.BorderSizePixel = 0
-    btn.Active = true
 
     Roundify(btn, 8)
     AddShadow(btn)
     AddGradient(btn, Color3.fromRGB(60, 40, 80), Color3.fromRGB(40, 25, 60), 45)
-
-    -- Efeito de toque para mobile
-    btn.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            TweenService:Create(btn, TweenInfo.new(0.1), {
-                BackgroundColor3 = Color3.fromRGB(80, 50, 120),
-                Size = UDim2.new(1, -15, 0, 38)
-            }):Play()
-        end
-    end)
-
-    btn.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            TweenService:Create(btn, TweenInfo.new(0.2), {
-                BackgroundColor3 = Color3.fromRGB(50, 30, 70),
-                Size = UDim2.new(1, -20, 0, 40)
-            }):Play()
-        end
-    end)
 
     return btn
 end
@@ -261,7 +200,7 @@ local function CreatePage(name)
     page.BorderSizePixel = 0
     page.ScrollBarThickness = 8
     page.ScrollBarImageColor3 = Color3.fromRGB(100, 60, 140)
-    page.CanvasSize = UDim2.new(0, 0, 0, 1200)
+    page.CanvasSize = UDim2.new(0, 0, 0, 600)
     page.ScrollingDirection = Enum.ScrollingDirection.Y
     page.Visible = false
     page.ZIndex = 7
@@ -289,264 +228,7 @@ local TeleportPage = CreatePage("Teleport")
 local ESPPage = CreatePage("ESP")
 local ConfigPage = CreatePage("Config")
 
--- Função para criar slider (mobile-friendly)
-local function CreateSlider(parent, labelText, min, max, default, callback)
-    local sliderFrame = Instance.new("Frame")
-    sliderFrame.Name = labelText .. "Slider"
-    sliderFrame.Parent = parent
-    sliderFrame.Size = UDim2.new(1, -40, 0, 80)
-    sliderFrame.Position = UDim2.new(0, 20, 0, (#parent:GetChildren() - 1) * 90 + 60)
-    sliderFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
-    sliderFrame.BorderSizePixel = 0
-    sliderFrame.ZIndex = 8
-    
-    Roundify(sliderFrame, 12)
-    AddShadow(sliderFrame)
-
-    local label = Instance.new("TextLabel")
-    label.Name = "Label"
-    label.Parent = sliderFrame
-    label.Text = labelText .. ": " .. default
-    label.Size = UDim2.new(1, -20, 0, 25)
-    label.Position = UDim2.new(0, 10, 0, 8)
-    label.TextColor3 = Color3.fromRGB(255, 255, 255)
-    label.BackgroundTransparency = 1
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 16
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.ZIndex = 9
-
-    local sliderBar = Instance.new("Frame")
-    sliderBar.Name = "SliderBar"
-    sliderBar.Parent = sliderFrame
-    sliderBar.Size = UDim2.new(1, -40, 0, 8)
-    sliderBar.Position = UDim2.new(0, 20, 0, 45)
-    sliderBar.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-    sliderBar.BorderSizePixel = 0
-    sliderBar.ZIndex = 9
-    sliderBar.Active = true
-    
-    Roundify(sliderBar, 4)
-
-    local sliderFill = Instance.new("Frame")
-    sliderFill.Name = "SliderFill"
-    sliderFill.Parent = sliderBar
-    sliderFill.Size = UDim2.new((default-min)/(max-min), 0, 1, 0)
-    sliderFill.Position = UDim2.new(0, 0, 0, 0)
-    sliderFill.BackgroundColor3 = Color3.fromRGB(120, 80, 200)
-    sliderFill.BorderSizePixel = 0
-    sliderFill.ZIndex = 10
-    
-    Roundify(sliderFill, 4)
-
-    local sliderButton = Instance.new("Frame")
-    sliderButton.Name = "SliderButton"
-    sliderButton.Parent = sliderBar
-    sliderButton.Size = UDim2.new(0, 24, 0, 24)
-    sliderButton.Position = UDim2.new((default-min)/(max-min), -12, 0.5, -12)
-    sliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    sliderButton.BorderSizePixel = 0
-    sliderButton.ZIndex = 11
-    sliderButton.Active = true
-    
-    Roundify(sliderButton, 12)
-    AddShadow(sliderButton)
-
-    local currentValue = default
-    local dragging = false
-
-    local function updateSlider(inputPos)
-        local relativeX = math.clamp((inputPos - sliderBar.AbsolutePosition.X) / sliderBar.AbsoluteSize.X, 0, 1)
-        local value = math.floor(min + (max - min) * relativeX)
-        
-        if value ~= currentValue then
-            currentValue = value
-            label.Text = labelText .. ": " .. value
-            
-            sliderFill.Size = UDim2.new(relativeX, 0, 1, 0)
-            sliderButton.Position = UDim2.new(relativeX, -12, 0.5, -12)
-            
-            callback(value)
-        end
-    end
-
-    -- Eventos mobile-friendly para o slider
-    sliderBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            updateSlider(input.Position.X)
-            sliderButton.Size = UDim2.new(0, 28, 0, 28)
-            sliderButton.Position = UDim2.new(sliderButton.Position.X.Scale, -14, 0.5, -14)
-        end
-    end)
-
-    sliderBar.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            updateSlider(input.Position.X)
-        end
-    end)
-
-    sliderBar.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
-            sliderButton.Size = UDim2.new(0, 24, 0, 24)
-            sliderButton.Position = UDim2.new(sliderButton.Position.X.Scale, -12, 0.5, -12)
-        end
-    end)
-end
-
--- Conteúdo das páginas
-local welcomeText = Instance.new("TextLabel")
-welcomeText.Parent = InicioPage
-welcomeText.Text = "Bem-vindo ao NaitHub Premium!\n\nEste é um hub mobile completo com várias funcionalidades.\n\n📱 Otimizado para dispositivos móveis\n⚡ Use os sliders na aba Farm\n🌐 Explore as outras funcionalidades\n\n👆 Toque nos botões para navegar!"
-welcomeText.Size = UDim2.new(1, -40, 0, 200)
-welcomeText.Position = UDim2.new(0, 20, 0, 60)
-welcomeText.TextColor3 = Color3.fromRGB(200, 200, 200)
-welcomeText.BackgroundTransparency = 1
-welcomeText.Font = Enum.Font.Gotham
-welcomeText.TextSize = 16
-welcomeText.TextXAlignment = Enum.TextXAlignment.Left
-welcomeText.TextYAlignment = Enum.TextYAlignment.Top
-welcomeText.TextWrapped = true
-welcomeText.ZIndex = 8
-
--- Configurações de Performance
-local function SetLowGraphics(enabled)
-    local settings = UserSettings():GetService("UserGameSettings")
-    
-    if enabled then
-        -- Configurações de baixa qualidade
-        settings.SavedQualityLevel = Enum.SavedQualitySetting.QualityLevel1
-        settings.MasterVolume = 0.1
-        
-        -- Remover texturas e efeitos
-        for _, obj in pairs(workspace:GetDescendants()) do
-            if obj:IsA("Decal") or obj:IsA("Texture") then
-                obj.Transparency = 1
-            elseif obj:IsA("Explosion") or obj:IsA("Fire") or obj:IsA("Smoke") then
-                obj:Destroy()
-            elseif obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then
-                obj.Enabled = false
-            elseif obj:IsA("ParticleEmitter") then
-                obj.Enabled = false
-            end
-        end
-        
-        -- Configurações de renderização
-        local lighting = game:GetService("Lighting")
-        lighting.GlobalShadows = false
-        lighting.FogEnd = 9e9
-        lighting.Brightness = 2
-        
-    else
-        -- Restaurar configurações normais
-        settings.SavedQualityLevel = Enum.SavedQualitySetting.Automatic
-        settings.MasterVolume = 0.5
-        
-        -- Restaurar efeitos visuais
-        local lighting = game:GetService("Lighting")
-        lighting.GlobalShadows = true
-        lighting.FogEnd = 100000
-        lighting.Brightness = 1
-    end
-end
-
-local function ToggleAntiLag(enabled)
-    if enabled then
-        -- Reduzir qualidade gráfica drasticamente
-        workspace.StreamingEnabled = true
-        workspace.StreamingTargetRadius = 50
-        workspace.StreamingMinRadius = 25
-        
-        -- Remover efeitos desnecessários
-        for _, obj in pairs(workspace:GetDescendants()) do
-            if obj:IsA("BasePart") then
-                obj.Material = Enum.Material.Plastic
-                obj.Reflectance = 0
-            end
-        end
-    else
-        -- Restaurar configurações
-        workspace.StreamingTargetRadius = 1024
-        workspace.StreamingMinRadius = 64
-    end
-end
-
--- Adicionando configurações na Config Page
-CreateToggle(ConfigPage, "🎮 FPS Boost (Remove Texturas)", 60, function(enabled)
-    SetLowGraphics(enabled)
-    if enabled then
-        print("✅ FPS Boost ativado! Texturas removidas.")
-    else
-        print("❌ FPS Boost desativado! Texturas restauradas.")
-    end
-end)
-
-CreateToggle(ConfigPage, "⚡ Anti-Lag (Performance Max)", 130, function(enabled)
-    ToggleAntiLag(enabled)
-    if enabled then
-        print("✅ Anti-Lag ativado! Performance maximizada.")
-    else
-        print("❌ Anti-Lag desativado!")
-    end
-end)
-
-CreateToggle(ConfigPage, "🔇 Silenciar Áudio", 200, function(enabled)
-    local SoundService = game:GetService("SoundService")
-    if enabled then
-        SoundService.RespectFilteringEnabled = false
-        SoundService.AmbientReverb = Enum.ReverbType.NoReverb
-        for _, sound in pairs(workspace:GetDescendants()) do
-            if sound:IsA("Sound") then
-                sound.Volume = 0
-            end
-        end
-        print("🔇 Áudio silenciado!")
-    else
-        for _, sound in pairs(workspace:GetDescendants()) do
-            if sound:IsA("Sound") then
-                sound.Volume = 0.5
-            end
-        end
-        print("🔊 Áudio restaurado!")
-    end
-end)
-
-CreateToggle(ConfigPage, "👻 Invisibilidade (Local)", 270, function(enabled)
-    if LocalPlayer.Character then
-        for _, part in pairs(LocalPlayer.Character:GetChildren()) do
-            if part:IsA("BasePart") or part:IsA("MeshPart") then
-                if enabled then
-                    part.Transparency = 0.8
-                else
-                    part.Transparency = 0
-                end
-            end
-        end
-        if enabled then
-            print("👻 Modo invisível ativado!")
-        else
-            print("👤 Visibilidade restaurada!")
-        end
-    end
-end)
-
-CreateToggle(ConfigPage, "🌙 Modo Escuro (Lighting)", 340, function(enabled)
-    local lighting = game:GetService("Lighting")
-    if enabled then
-        lighting.Brightness = 0
-        lighting.OutdoorAmbient = Color3.fromRGB(0, 0, 0)
-        lighting.Ambient = Color3.fromRGB(0, 0, 0)
-        print("🌙 Modo escuro ativado!")
-    else
-        lighting.Brightness = 1
-        lighting.OutdoorAmbient = Color3.fromRGB(70, 70, 70)
-        lighting.Ambient = Color3.fromRGB(70, 70, 70)
-        print("☀️ Iluminação normal restaurada!")
-    end
-end)
-
--- Função para criar toggle button
+-- Função para criar toggle - MOBILE OPTIMIZED
 local function CreateToggle(parent, labelText, yPos, callback)
     local toggleFrame = Instance.new("Frame")
     toggleFrame.Name = labelText .. "Toggle"
@@ -583,7 +265,6 @@ local function CreateToggle(parent, labelText, yPos, callback)
     toggleButton.BorderSizePixel = 0
     toggleButton.Text = ""
     toggleButton.ZIndex = 10
-    toggleButton.Active = true
     
     Roundify(toggleButton, 8)
     AddShadow(toggleButton)
@@ -601,51 +282,105 @@ local function CreateToggle(parent, labelText, yPos, callback)
 
     local isToggled = false
 
+    -- MOBILE EVENT - Activated funciona para touch
     toggleButton.Activated:Connect(function()
         isToggled = not isToggled
         
         if isToggled then
-            -- Ativado
-            TweenService:Create(toggleButton, TweenInfo.new(0.2), {
-                BackgroundColor3 = Color3.fromRGB(0, 200, 0)
-            }):Play()
+            toggleButton.BackgroundColor3 = Color3.fromRGB(0, 200, 0)
             checkmark.Text = "✓"
-            TweenService:Create(checkmark, TweenInfo.new(0.1), {
-                TextTransparency = 0
-            }):Play()
         else
-            -- Desativado
-            TweenService:Create(toggleButton, TweenInfo.new(0.2), {
-                BackgroundColor3 = Color3.fromRGB(80, 80, 100)
-            }):Play()
+            toggleButton.BackgroundColor3 = Color3.fromRGB(80, 80, 100)
             checkmark.Text = ""
-            checkmark.TextTransparency = 1
         end
         
         callback(isToggled)
     end)
 
-    -- Efeito hover
-    toggleButton.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            TweenService:Create(toggleButton, TweenInfo.new(0.1), {
-                Size = UDim2.new(0, 38, 0, 38)
-            }):Play()
-        end
-    end)
-
-    toggleButton.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            TweenService:Create(toggleButton, TweenInfo.new(0.1), {
-                Size = UDim2.new(0, 40, 0, 40)
-            }):Play()
-        end
-    end)
-
-    return toggleFrame, isToggled
+    return toggleFrame
 end
 
--- Auto Farm para Murder Mystery 2 - VERSÃO CORRIGIDA
+-- Função para criar slider - MOBILE OPTIMIZED
+local function CreateSlider(parent, labelText, min, max, default, callback)
+    local sliderFrame = Instance.new("Frame")
+    sliderFrame.Name = labelText .. "Slider"
+    sliderFrame.Parent = parent
+    sliderFrame.Size = UDim2.new(1, -40, 0, 80)
+    sliderFrame.Position = UDim2.new(0, 20, 0, (#parent:GetChildren() - 1) * 90 + 60)
+    sliderFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+    sliderFrame.BorderSizePixel = 0
+    sliderFrame.ZIndex = 8
+    
+    Roundify(sliderFrame, 12)
+    AddShadow(sliderFrame)
+
+    local label = Instance.new("TextLabel")
+    label.Name = "Label"
+    label.Parent = sliderFrame
+    label.Text = labelText .. ": " .. default
+    label.Size = UDim2.new(1, -20, 0, 25)
+    label.Position = UDim2.new(0, 10, 0, 8)
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.ZIndex = 9
+
+    local sliderBar = Instance.new("TextButton")
+    sliderBar.Name = "SliderBar"
+    sliderBar.Parent = sliderFrame
+    sliderBar.Size = UDim2.new(1, -40, 0, 8)
+    sliderBar.Position = UDim2.new(0, 20, 0, 45)
+    sliderBar.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    sliderBar.BorderSizePixel = 0
+    sliderBar.ZIndex = 9
+    sliderBar.Text = ""
+    
+    Roundify(sliderBar, 4)
+
+    local sliderFill = Instance.new("Frame")
+    sliderFill.Name = "SliderFill"
+    sliderFill.Parent = sliderBar
+    sliderFill.Size = UDim2.new((default-min)/(max-min), 0, 1, 0)
+    sliderFill.Position = UDim2.new(0, 0, 0, 0)
+    sliderFill.BackgroundColor3 = Color3.fromRGB(120, 80, 200)
+    sliderFill.BorderSizePixel = 0
+    sliderFill.ZIndex = 10
+    
+    Roundify(sliderFill, 4)
+
+    local sliderButton = Instance.new("Frame")
+    sliderButton.Name = "SliderButton"
+    sliderButton.Parent = sliderBar
+    sliderButton.Size = UDim2.new(0, 24, 0, 24)
+    sliderButton.Position = UDim2.new((default-min)/(max-min), -12, 0.5, -12)
+    sliderButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    sliderButton.BorderSizePixel = 0
+    sliderButton.ZIndex = 11
+    
+    Roundify(sliderButton, 12)
+    AddShadow(sliderButton)
+
+    local currentValue = default
+
+    -- MOBILE EVENT - Usar Activated para touch
+    sliderBar.Activated:Connect(function()
+        local mouse = LocalPlayer:GetMouse()
+        local relativeX = math.clamp((mouse.X - sliderBar.AbsolutePosition.X) / sliderBar.AbsoluteSize.X, 0, 1)
+        local value = math.floor(min + (max - min) * relativeX)
+        
+        currentValue = value
+        label.Text = labelText .. ": " .. value
+        
+        sliderFill.Size = UDim2.new(relativeX, 0, 1, 0)
+        sliderButton.Position = UDim2.new(relativeX, -12, 0.5, -12)
+        
+        callback(value)
+    end)
+end
+
+-- AUTO FARM SIMPLES - MURDER MYSTERY 2
 local autoFarmActive = false
 local autoFarmConnection = nil
 
@@ -655,33 +390,25 @@ local function startAutoFarm()
     end
     
     autoFarmActive = true
-    print("🔍 Iniciando busca por moedas...")
+    print("🔍 Auto Farm MM2 iniciado!")
     
-    autoFarmConnection = game:GetService("RunService").Heartbeat:Connect(function()
-        if not autoFarmActive then
-            return
-        end
+    autoFarmConnection = RunService.Heartbeat:Connect(function()
+        if not autoFarmActive then return end
         
-        local character = LocalPlayer.Character
-        if not character or not character:FindFirstChild("HumanoidRootPart") then
-            return
-        end
+        local char = LocalPlayer.Character
+        if not char or not char:FindFirstChild("HumanoidRootPart") then return end
         
-        local humanoidRootPart = character.HumanoidRootPart
-        
-        -- Buscar moedas no workspace inteiro
+        -- Buscar moedas
         for _, obj in pairs(workspace:GetDescendants()) do
             if obj.Name == "Coin_Server" or obj.Name == "Coin" then
                 if obj:IsA("BasePart") then
-                    print("💰 Moeda encontrada! Teleportando...")
-                    humanoidRootPart.CFrame = CFrame.new(obj.Position + Vector3.new(0, 2, 0))
+                    print("💰 Moeda encontrada!")
+                    char.HumanoidRootPart.CFrame = CFrame.new(obj.Position + Vector3.new(0, 2, 0))
                     task.wait(0.5)
                     break
                 end
             end
         end
-        
-        task.wait(0.3)
     end)
 end
 
@@ -689,22 +416,34 @@ local function stopAutoFarm()
     autoFarmActive = false
     if autoFarmConnection then
         autoFarmConnection:Disconnect()
-        autoFarmConnection = nil
     end
+    print("❌ Auto Farm parado!")
 end
 
--- Adicionando toggle de Auto Farm na Farm Page - VERSÃO SIMPLES
+-- Conteúdo das páginas
+local welcomeText = Instance.new("TextLabel")
+welcomeText.Parent = InicioPage
+welcomeText.Text = "Bem-vindo ao NaitHub Premium!\n\n📱 Versão Mobile Otimizada\n⚡ Farm para MM2\n🎮 Configurações de performance\n\n👆 Use os botões para navegar!"
+welcomeText.Size = UDim2.new(1, -40, 0, 200)
+welcomeText.Position = UDim2.new(0, 20, 0, 60)
+welcomeText.TextColor3 = Color3.fromRGB(200, 200, 200)
+welcomeText.BackgroundTransparency = 1
+welcomeText.Font = Enum.Font.Gotham
+welcomeText.TextSize = 16
+welcomeText.TextXAlignment = Enum.TextXAlignment.Left
+welcomeText.TextYAlignment = Enum.TextYAlignment.Top
+welcomeText.TextWrapped = true
+welcomeText.ZIndex = 8
+
+-- FARM PAGE - Auto Farm + Sliders
 CreateToggle(FarmPage, "🪙 Auto Farm MM2", 60, function(enabled)
     if enabled then
         startAutoFarm()
-        print("✅ Auto Farm MM2 ativado!")
     else
         stopAutoFarm()
-        print("❌ Auto Farm MM2 desativado!")
     end
 end)
 
--- Sliders na Farm Page
 CreateSlider(FarmPage, "Speed", 16, 300, 16, function(value)
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = value
@@ -714,6 +453,18 @@ end)
 CreateSlider(FarmPage, "Jump Power", 50, 300, 50, function(value)
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.JumpPower = value
+    end
+end)
+
+-- CONFIG PAGE - Performance
+CreateToggle(ConfigPage, "🎮 FPS Boost", 60, function(enabled)
+    local settings = UserSettings():GetService("UserGameSettings")
+    if enabled then
+        settings.SavedQualityLevel = Enum.SavedQualitySetting.QualityLevel1
+        print("✅ FPS Boost ativado!")
+    else
+        settings.SavedQualityLevel = Enum.SavedQualitySetting.Automatic
+        print("❌ FPS Boost desativado!")
     end
 end)
 
@@ -727,17 +478,17 @@ local function ShowPage(page)
     page.Visible = true
 end
 
--- Conectar botões (mobile events)
+-- MOBILE EVENTS - Usar Activated
 InicioBtn.Activated:Connect(function() ShowPage(InicioPage) end)
 FarmBtn.Activated:Connect(function() ShowPage(FarmPage) end)
 TeleportBtn.Activated:Connect(function() ShowPage(TeleportPage) end)
 ESPBtn.Activated:Connect(function() ShowPage(ESPPage) end)
 ConfigBtn.Activated:Connect(function() ShowPage(ConfigPage) end)
 
--- Página inicial
+-- Mostrar página inicial
 ShowPage(InicioPage)
 
--- Funcionalidade minimizar (mobile)
+-- MOBILE BUTTONS - Minimizar e Fechar
 local minimized = false
 MinBtn.Activated:Connect(function()
     minimized = not minimized
@@ -760,15 +511,13 @@ MinBtn.Activated:Connect(function()
     end
 end)
 
--- Funcionalidade fechar (mobile)
 CloseBtn.Activated:Connect(function()
-    TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+    TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {
         Size = UDim2.new(0, 0, 0, 0)
     }):Play()
-    
     task.wait(0.5)
     NaitHub:Destroy()
 end)
 
-print("✨ NaitHub Premium Mobile v2.0 carregado!")
-print("📱 Otimizado para dispositivos móveis!")
+print("✨ NaitHub Mobile v2.0 carregado!")
+print("📱 Todos os botões funcionando para mobile!")
