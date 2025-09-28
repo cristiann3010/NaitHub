@@ -645,56 +645,9 @@ local function CreateToggle(parent, labelText, yPos, callback)
     return toggleFrame, isToggled
 end
 
--- Auto Farm para Murder Mystery 2
+-- Auto Farm para Murder Mystery 2 - VERSÃO CORRIGIDA
 local autoFarmActive = false
 local autoFarmConnection = nil
-
-local function findCoinInWorkspace()
-    -- Procurar em todas as pastas do workspace
-    local function searchInFolder(folder)
-        for _, obj in pairs(folder:GetChildren()) do
-            -- Procurar por bolas de praia (moedas do MM2)
-            if obj.Name == "Coin_Server" or obj.Name:find("Coin") or obj.Name == "Beach Ball" then
-                if obj:IsA("BasePart") or obj:FindFirstChild("MeshPart") or obj:FindFirstChild("Part") then
-                    return obj
-                end
-            end
-            
-            -- Procurar por modelos que contenham moedas
-            if obj:IsA("Model") or obj:IsA("Folder") then
-                local foundCoin = searchInFolder(obj)
-                if foundCoin then
-                    return foundCoin
-                end
-            end
-            
-            -- Procurar especificamente por bolas de praia
-            if obj:IsA("BasePart") and (obj.Shape == Enum.PartType.Ball or obj.Name:lower():find("ball")) then
-                -- Verificar se é uma moeda baseada no tamanho e cor
-                if obj.Size.X < 5 and obj.Size.Y < 5 and obj.Size.Z < 5 then
-                    return obj
-                end
-            end
-        end
-        return nil
-    end
-    
-    -- Procurar no workspace principal
-    local coin = searchInFolder(workspace)
-    if coin then return coin end
-    
-    -- Procurar em locais específicos do MM2
-    local commonFolders = {"Coins", "Items", "Map", "Game"}
-    for _, folderName in pairs(commonFolders) do
-        local folder = workspace:FindFirstChild(folderName)
-        if folder then
-            local coin = searchInFolder(folder)
-            if coin then return coin end
-        end
-    end
-    
-    return nil
-end
 
 local function startAutoFarm()
     if autoFarmConnection then
@@ -702,6 +655,7 @@ local function startAutoFarm()
     end
     
     autoFarmActive = true
+    print("🔍 Iniciando busca por moedas...")
     
     autoFarmConnection = game:GetService("RunService").Heartbeat:Connect(function()
         if not autoFarmActive then
@@ -714,30 +668,20 @@ local function startAutoFarm()
         end
         
         local humanoidRootPart = character.HumanoidRootPart
-        local coin = findCoinInWorkspace()
         
-        if coin then
-            local coinPosition
-            
-            -- Obter posição da moeda
-            if coin:IsA("BasePart") then
-                coinPosition = coin.Position
-            elseif coin:FindFirstChild("Part") then
-                coinPosition = coin.Part.Position
-            elseif coin:FindFirstChild("MeshPart") then
-                coinPosition = coin.MeshPart.Position
-            elseif coin.PrimaryPart then
-                coinPosition = coin.PrimaryPart.Position
-            end
-            
-            if coinPosition then
-                -- Teleportar para a moeda
-                humanoidRootPart.CFrame = CFrame.new(coinPosition + Vector3.new(0, 3, 0))
-                task.wait(0.1)
+        -- Buscar moedas no workspace inteiro
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj.Name == "Coin_Server" or obj.Name == "Coin" then
+                if obj:IsA("BasePart") then
+                    print("💰 Moeda encontrada! Teleportando...")
+                    humanoidRootPart.CFrame = CFrame.new(obj.Position + Vector3.new(0, 2, 0))
+                    task.wait(0.5)
+                    break
+                end
             end
         end
         
-        task.wait(0.1) -- Pequena pausa para performance
+        task.wait(0.3)
     end)
 end
 
@@ -749,14 +693,14 @@ local function stopAutoFarm()
     end
 end
 
--- Adicionando toggle de Auto Farm na Farm Page
-CreateToggle(FarmPage, "🪙 Auto Farm Coins (MM2)", 60, function(enabled)
+-- Adicionando toggle de Auto Farm na Farm Page - VERSÃO SIMPLES
+CreateToggle(FarmPage, "🪙 Auto Farm MM2", 60, function(enabled)
     if enabled then
         startAutoFarm()
-        print("✅ Auto Farm ativado! Coletando moedas...")
+        print("✅ Auto Farm MM2 ativado!")
     else
         stopAutoFarm()
-        print("❌ Auto Farm desativado!")
+        print("❌ Auto Farm MM2 desativado!")
     end
 end)
 
