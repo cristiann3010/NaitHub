@@ -1,59 +1,99 @@
--- NAIT HUB - Ícone abre/fecha
+--[[
+    NAIT HUB - PC VERSION
+    Ícone que abre e fecha o menu com animação
+    Desenvolvido para você não ter que mexer em nada :)
+--]]
 
 local Players = game:GetService("Players")
-local player = Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local Player = Players.LocalPlayer
 
-local gui = Instance.new("ScreenGui")
-gui.Name = "NaitHubGUI"
-gui.ResetOnSpawn = false
-gui.Parent = player:WaitForChild("PlayerGui")
+-- Criar GUI principal
+local NaitHub = Instance.new("ScreenGui")
+NaitHub.Name = "NaitHub"
+NaitHub.Parent = Player:WaitForChild("PlayerGui")
+NaitHub.ResetOnSpawn = false
 
--- Ícone (ImageButton)
-local iconButton = Instance.new("ImageButton")
-iconButton.Name = "NaitHubIcon"
-iconButton.Size = UDim2.new(0, 50, 0, 50)
-iconButton.Position = UDim2.new(0, 15, 0, 15)
-iconButton.BackgroundTransparency = 1
-iconButton.Parent = gui
+---------------------------------------------------------------------
+-- BOTÃO QUE ABRE/FECHA O MENU
+---------------------------------------------------------------------
 
--- Ícone padrão
-iconButton.Image = "rbxassetid://3926307971"
-iconButton.ImageRectOffset = Vector2.new(84, 84)
-iconButton.ImageRectSize = Vector2.new(36, 36)
+local ToggleButton = Instance.new("ImageButton")
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Parent = NaitHub
+ToggleButton.Size = UDim2.new(0, 60, 0, 60)
+ToggleButton.Position = UDim2.new(0, 20, 0.5, -30)
+ToggleButton.BackgroundTransparency = 1
+ToggleButton.Image = "rbxassetid://3926305904"
+ToggleButton.ImageRectOffset = Vector2.new(4, 364)
+ToggleButton.ImageRectSize = Vector2.new(36, 36)
 
-local iconCorner = Instance.new("UICorner")
-iconCorner.CornerRadius = UDim.new(1, 0)
-iconCorner.Parent = iconButton
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(1, 0)
+corner.Parent = ToggleButton
 
--- Menu
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 220, 0, 120)
-frame.Position = UDim2.new(0, 75, 0, 15)
-frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-frame.BackgroundTransparency = 0.15
-frame.BorderSizePixel = 0
-frame.Visible = false
-frame.Parent = gui
+---------------------------------------------------------------------
+-- MAIN MENU (seu layout principal adaptado)
+---------------------------------------------------------------------
 
-local frameCorner = Instance.new("UICorner")
-frameCorner.CornerRadius = UDim.new(0, 12)
-frameCorner.Parent = frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = NaitHub
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.BackgroundTransparency = 0.1
+MainFrame.Size = UDim2.new(0, 0, 0, 0)
+MainFrame.Position = UDim2.new(0, 100, 0.5, -200)
+MainFrame.Visible = false
 
-local label = Instance.new("TextLabel")
-label.Size = UDim2.new(1, 0, 1, 0)
-label.Text = "🌐 NAIT HUB"
-label.Font = Enum.Font.GothamBold
-label.TextColor3 = Color3.fromRGB(255, 255, 255)
-label.BackgroundTransparency = 1
-label.TextScaled = true
-label.Parent = frame
+local mf_corner = Instance.new("UICorner")
+mf_corner.CornerRadius = UDim.new(0, 15)
+mf_corner.Parent = MainFrame
 
--- Toggle abrir/fechar
+-- Título dentro do menu
+local Titulo = Instance.new("TextLabel")
+Titulo.Parent = MainFrame
+Titulo.Size = UDim2.new(1, 0, 0, 50)
+Titulo.Text = "🌐 NAIT HUB"
+Titulo.Font = Enum.Font.GothamBold
+Titulo.TextScaled = true
+Titulo.BackgroundTransparency = 1
+Titulo.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+---------------------------------------------------------------------
+-- ANIMAÇÕES DE ABRIR E FECHAR
+---------------------------------------------------------------------
+
 local aberto = false
 
-iconButton.MouseButton1Click:Connect(function()
-    aberto = not aberto
-    frame.Visible = aberto
+local function AbrirMenu()
+    aberto = true
+    MainFrame.Visible = true
+
+    TweenService:Create(MainFrame, TweenInfo.new(0.35, Enum.EasingStyle.Back), {
+        Size = UDim2.new(0, 520, 0, 350)
+    }):Play()
+end
+
+local function FecharMenu()
+    aberto = false
+
+    local tween = TweenService:Create(MainFrame, TweenInfo.new(0.25), {
+        Size = UDim2.new(0, 0, 0, 0)
+    })
+    tween:Play()
+
+    tween.Completed:Connect(function()
+        MainFrame.Visible = false
+    end)
+end
+
+-- Clicar no botão alterna entre abrir/fechar
+ToggleButton.MouseButton1Click:Connect(function()
+    if aberto then
+        FecharMenu()
+    else
+        AbrirMenu()
+    end
 end)
 
-print("NAIT HUB carregado com sucesso!")
+print("🔥 NAIT HUB PC carregado com sucesso!")
