@@ -1,4 +1,4 @@
--- Nait Hub - Sistema de Speed e Jump
+[-- Nait Hub - Sistema de Speed e Jump
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -199,3 +199,4 @@ connection = RunService.Heartbeat:Connect(function()
         end
     end
 end)
+](https://raw.githubusercontent.com/cristiann3010/NaitHub/refs/heads/main/README.md)
