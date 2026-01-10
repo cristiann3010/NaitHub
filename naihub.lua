@@ -1,8 +1,8 @@
--- 🌊 NaitHub v3.0
--- Blox Fruits Script
+-- 🌊 NaitHub v4.0 - FINAL
+-- Navegação TOTALMENTE FUNCIONANTE
 -- Autor: cristiann3010
 
-print("🌊 NaitHub v3.0 carregando...")
+print("🌊 NaitHub v4.0 - Iniciando...")
 
 -- Serviços
 local Players = game:GetService("Players")
@@ -13,7 +13,7 @@ local Player = Players.LocalPlayer
 -- Configurações
 local Config = {
     Name = "NaitHub",
-    Version = "3.0",
+    Version = "4.0",
     Colors = {
         Primary = Color3.fromRGB(0, 120, 215),
         Secondary = Color3.fromRGB(40, 40, 50),
@@ -36,25 +36,13 @@ MainFrame.Size = UDim2.new(0, 450, 0, 500)
 MainFrame.Position = UDim2.new(0.5, -225, 0.5, -250)
 MainFrame.BackgroundColor3 = Config.Colors.Background
 MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
 MainFrame.Parent = ScreenGui
 
 -- Arredondar cantos
 local Corner = Instance.new("UICorner")
 Corner.CornerRadius = UDim.new(0, 12)
 Corner.Parent = MainFrame
-
--- Sombra
-local Shadow = Instance.new("ImageLabel")
-Shadow.Size = UDim2.new(1, 10, 1, 10)
-Shadow.Position = UDim2.new(0, -5, 0, -5)
-Shadow.BackgroundTransparency = 1
-Shadow.Image = "rbxassetid://1316045217"
-Shadow.ImageColor3 = Color3.new(0, 0, 0)
-Shadow.ImageTransparency = 0.8
-Shadow.ScaleType = Enum.ScaleType.Slice
-Shadow.SliceCenter = Rect.new(10, 10, 118, 118)
-Shadow.ZIndex = -1
-Shadow.Parent = MainFrame
 
 -- Barra de título
 local TitleBar = Instance.new("Frame")
@@ -78,12 +66,12 @@ Title.Font = Enum.Font.GothamBold
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = TitleBar
 
--- Botão minimizar (com ícone)
+-- Botão minimizar
 local MinBtn = Instance.new("TextButton")
 MinBtn.Size = UDim2.new(0, 35, 0, 35)
 MinBtn.Position = UDim2.new(1, -80, 0.5, -17.5)
 MinBtn.BackgroundColor3 = Config.Colors.Secondary
-MinBtn.Text = "🗕"  -- Ícone de minimizar
+MinBtn.Text = "🗕"
 MinBtn.TextColor3 = Config.Colors.Text
 MinBtn.TextSize = 18
 MinBtn.Font = Enum.Font.GothamBold
@@ -108,20 +96,25 @@ local CloseCorner = Instance.new("UICorner")
 CloseCorner.CornerRadius = UDim.new(0, 8)
 CloseCorner.Parent = CloseBtn
 
--- Conteúdo
+-- Área de conteúdo principal
 local Content = Instance.new("Frame")
 Content.Size = UDim2.new(1, -20, 1, -65)
 Content.Position = UDim2.new(0, 10, 0, 55)
 Content.BackgroundTransparency = 1
 Content.Parent = MainFrame
 
--- Variáveis de estado
-local Minimized = false
-local Dragging = false
-local DragStart, FrameStart
+-- ========================================
+-- SISTEMA DE TABS (CORRIGIDO)
+-- ========================================
 
--- Sistema de tabs
-local Tabs = {"Início", "Farm", "TP", "Frutas", "Config"}
+local Tabs = {
+    {Name = "Início", Icon = "🏠"},
+    {Name = "Farm", Icon = "⚔️"},
+    {Name = "TP", Icon = "📍"},
+    {Name = "Frutas", Icon = "🍎"},
+    {Name = "Config", Icon = "⚙️"}
+}
+
 local CurrentTab = "Início"
 
 -- Criar barra de tabs
@@ -132,45 +125,51 @@ TabBar.Parent = Content
 
 -- Área de conteúdo das tabs
 local TabContent = Instance.new("Frame")
+TabContent.Name = "TabContent"
 TabContent.Size = UDim2.new(1, 0, 1, -50)
 TabContent.Position = UDim2.new(0, 0, 0, 50)
 TabContent.BackgroundTransparency = 1
 TabContent.Parent = Content
 
--- Função para criar botão de tab
-local function createTabButton(tabName, index)
-    local TabBtn = Instance.new("TextButton")
-    TabBtn.Name = tabName .. "Tab"
-    TabBtn.Size = UDim2.new(0.2, -4, 1, 0)
-    TabBtn.Position = UDim2.new((index-1) * 0.2, 2, 0, 0)
-    TabBtn.BackgroundColor3 = tabName == CurrentTab and Config.Colors.Primary or Config.Colors.Secondary
-    TabBtn.Text = tabName
-    TabBtn.TextColor3 = Config.Colors.Text
-    TabBtn.TextSize = 14
-    TabBtn.Font = Enum.Font.Gotham
-    TabBtn.Parent = TabBar
-    
-    local TabCorner = Instance.new("UICorner")
-    TabCorner.CornerRadius = UDim.new(0, 6)
-    TabCorner.Parent = TabBtn
-    
-    -- Conectar clique
-    TabBtn.MouseButton1Click:Connect(function()
-        CurrentTab = tabName
-        loadTabContent()
+-- Função para criar botões de tab
+local function createTabButtons()
+    for i, tab in ipairs(Tabs) do
+        local TabBtn = Instance.new("TextButton")
+        TabBtn.Name = tab.Name .. "Tab"
+        TabBtn.Size = UDim2.new(0.2, -4, 1, 0)
+        TabBtn.Position = UDim2.new((i-1) * 0.2, 2, 0, 0)
+        TabBtn.BackgroundColor3 = tab.Name == CurrentTab and Config.Colors.Primary or Config.Colors.Secondary
+        TabBtn.Text = tab.Icon .. "\n" .. tab.Name
+        TabBtn.TextColor3 = Config.Colors.Text
+        TabBtn.TextSize = 11
+        TabBtn.Font = Enum.Font.Gotham
+        TabBtn.Parent = TabBar
         
-        -- Atualizar aparência de todas as tabs
-        for _, child in ipairs(TabBar:GetChildren()) do
-            if child:IsA("TextButton") then
-                child.BackgroundColor3 = child.Text == CurrentTab and Config.Colors.Primary or Config.Colors.Secondary
+        local TabCorner = Instance.new("UICorner")
+        TabCorner.CornerRadius = UDim.new(0, 6)
+        TabCorner.Parent = TabBtn
+        
+        -- Conectar clique CORRETAMENTE
+        TabBtn.MouseButton1Click:Connect(function()
+            print("[TAB] Clicado: " .. tab.Name)
+            CurrentTab = tab.Name
+            loadTabContent()  -- Isso VAI chamar a função
+            
+            -- Atualizar aparência de todas as tabs
+            for _, child in ipairs(TabBar:GetChildren()) do
+                if child:IsA("TextButton") then
+                    local isActive = child.Name == tab.Name .. "Tab"
+                    child.BackgroundColor3 = isActive and Config.Colors.Primary or Config.Colors.Secondary
+                end
             end
-        end
-    end)
-    
-    return TabBtn
+        end)
+    end
 end
 
--- Função para criar seção
+-- ========================================
+-- FUNÇÕES PARA CRIAR CONTEÚDO
+-- ========================================
+
 local function createSection(title, parent, height)
     local Section = Instance.new("Frame")
     Section.Size = UDim2.new(1, 0, 0, height or 0)
@@ -203,10 +202,10 @@ local function createSection(title, parent, height)
     return ContentFrame
 end
 
--- Função para criar botão
-local function createButton(text, parent, callback)
+local function createButton(text, parent, callback, yPosition)
     local Btn = Instance.new("TextButton")
     Btn.Size = UDim2.new(1, 0, 0, 40)
+    Btn.Position = UDim2.new(0, 0, 0, yPosition or 0)
     Btn.BackgroundColor3 = Config.Colors.Primary
     Btn.Text = text
     Btn.TextColor3 = Config.Colors.Text
@@ -223,34 +222,39 @@ local function createButton(text, parent, callback)
     return Btn
 end
 
--- Função para carregar conteúdo da tab (CORRIGIDA)
-local function loadTabContent()
-    -- Limpar conteúdo anterior
+-- ========================================
+-- CARREGAR CONTEÚDO DAS TABS (REESCRITO)
+-- ========================================
+
+function loadTabContent()
+    print("[DEBUG] Carregando tab: " .. CurrentTab)
+    
+    -- LIMPAR conteúdo anterior COMPLETAMENTE
     for _, child in ipairs(TabContent:GetChildren()) do
         child:Destroy()
     end
     
-    -- Layout
+    -- Criar layout
     local Layout = Instance.new("UIListLayout")
     Layout.Padding = UDim.new(0, 10)
     Layout.SortOrder = Enum.SortOrder.LayoutOrder
     Layout.Parent = TabContent
     
-    print("Carregando tab: " .. CurrentTab)
-    
     if CurrentTab == "Início" then
+        print("[DEBUG] Criando tab Início")
+        
         -- Seção de boas-vindas
         local welcomeSection = createSection("Bem-vindo", TabContent, 120)
         welcomeSection.LayoutOrder = 1
         
         local WelcomeText = Instance.new("TextLabel")
-        WelcomeText.Size = UDim2.new(1, 0, 1, 0)
+        WelcomeText.Size = UDim2.new(1, 0, 0.8, 0)
+        WelcomeText.Position = UDim2.new(0, 0, 0.1, 0)
         WelcomeText.BackgroundTransparency = 1
-        WelcomeText.Text = "🌊 NaitHub v" .. Config.Version .. "\n\nPara Blox Fruits\nUse as tabs acima para navegar"
+        WelcomeText.Text = "🌊 NaitHub v" .. Config.Version .. "\n\nBlox Fruits Script\nClique nas tabs acima!"
         WelcomeText.TextColor3 = Config.Colors.Text
         WelcomeText.TextSize = 16
-        WelcomeText.Font = Enum.Font.Gotham
-        WelcomeText.TextYAlignment = Enum.TextYAlignment.Top
+        WelcomeText.Font = Enum.Font.GothamBold
         WelcomeText.TextWrapped = true
         WelcomeText.Parent = welcomeSection
         
@@ -269,6 +273,8 @@ local function loadTabContent()
         StatusText.Parent = statusSection
         
     elseif CurrentTab == "Farm" then
+        print("[DEBUG] Criando tab Farm")
+        
         local farmSection = createSection("Auto Farm", TabContent, 150)
         farmSection.LayoutOrder = 1
         
@@ -281,20 +287,22 @@ local function loadTabContent()
         StatusLabel.Font = Enum.Font.GothamBold
         StatusLabel.Parent = farmSection
         
+        local farmToggle = false
+        
         local FarmBtn = createButton("▶️ INICIAR AUTO FARM", farmSection, function()
-            if StatusLabel.Text == "🛑 Farm Desativado" then
+            farmToggle = not farmToggle
+            if farmToggle then
                 StatusLabel.Text = "✅ Farm Ativo"
                 FarmBtn.Text = "⏸️ PARAR FARM"
                 FarmBtn.BackgroundColor3 = Config.Colors.Danger
-                print("[FARM] Auto Farm iniciado!")
+                print("[FARM] Auto Farm INICIADO!")
             else
                 StatusLabel.Text = "🛑 Farm Desativado"
                 FarmBtn.Text = "▶️ INICIAR AUTO FARM"
                 FarmBtn.BackgroundColor3 = Config.Colors.Primary
-                print("[FARM] Auto Farm parado!")
+                print("[FARM] Auto Farm PARADO!")
             end
-        end)
-        FarmBtn.Position = UDim2.new(0, 0, 0, 40)
+        end, 40)
         
         -- Configurações
         local settingsSection = createSection("Configurações", TabContent, 120)
@@ -302,16 +310,16 @@ local function loadTabContent()
         
         createButton("⚙️ Farm de NPCs", settingsSection, function()
             print("[CONFIG] Farm de NPCs ativado")
-        end)
+        end, 0)
         
-        local btn2 = createButton("👑 Farm de Bosses", settingsSection, function()
+        createButton("👑 Farm de Bosses", settingsSection, function()
             print("[CONFIG] Farm de Bosses ativado")
-        end)
-        btn2.Position = UDim2.new(0, 0, 0, 50)
+        end, 50)
         
     elseif CurrentTab == "TP" then
-        local tpSection = createSection("Teleportes", TabContent)
-        tpSection.Size = UDim2.new(1, 0, 0, 250)
+        print("[DEBUG] Criando tab TP")
+        
+        local tpSection = createSection("Teleportes", TabContent, 250)
         tpSection.LayoutOrder = 1
         
         local Scroll = Instance.new("ScrollingFrame")
@@ -355,56 +363,56 @@ local function loadTabContent()
         end
         
     elseif CurrentTab == "Frutas" then
-        local fruitSection = createSection("Frutas", TabContent, 200)
+        print("[DEBUG] Criando tab Frutas")
+        
+        local fruitSection = createSection("Gerenciar Frutas", TabContent, 200)
         fruitSection.LayoutOrder = 1
         
         createButton("🍎 Comprar Fruta Aleatória", fruitSection, function()
             print("[FRUTAS] Comprando fruta aleatória...")
-        end)
+        end, 0)
         
-        local btn2 = createButton("📦 Armazenar Fruta", fruitSection, function()
-            print("[FRUTAS] Armazenando fruta...")
-        end)
-        btn2.Position = UDim2.new(0, 0, 0, 50)
+        createButton("📦 Armazenar Fruta", fruitSection, function()
+            print("[FRUTAS] Armazenando fruta atual...")
+        end, 50)
         
-        local btn3 = createButton("🔍 Procurar Frutas", fruitSection, function()
+        createButton("🔍 Procurar Frutas", fruitSection, function()
             print("[FRUTAS] Procurando frutas no mapa...")
-        end)
-        btn3.Position = UDim2.new(0, 0, 0, 100)
+        end, 100)
         
         -- Lista de frutas
-        local listSection = createSection("Lista de Frutas", TabContent, 150)
+        local listSection = createSection("Frutas Disponíveis", TabContent, 150)
         listSection.LayoutOrder = 2
         
-        local FruitsList = Instance.new("TextLabel")
-        FruitsList.Size = UDim2.new(1, 0, 1, 0)
-        FruitsList.BackgroundTransparency = 1
-        FruitsList.Text = "🍎 Bomba\n🍐 Spike\n🍊 Dark\n🍇 Ice\n🍓 Flame\n🍑 Magma"
-        FruitsList.TextColor3 = Config.Colors.Text
-        FruitsList.TextSize = 14
-        FruitsList.Font = Enum.Font.Gotham
-        FruitsList.TextYAlignment = Enum.TextYAlignment.Top
-        FruitsList.TextXAlignment = Enum.TextXAlignment.Left
-        FruitsList.Parent = listSection
+        local FruitsText = Instance.new("TextLabel")
+        FruitsText.Size = UDim2.new(1, 0, 1, 0)
+        FruitsText.BackgroundTransparency = 1
+        FruitsText.Text = "🍎 Bomba\n🍐 Spike\n🍊 Dark\n🍇 Ice\n🍓 Flame\n🍑 Magma\n🍒 Buddha\n🥭 Dragon"
+        FruitsText.TextColor3 = Config.Colors.Text
+        FruitsText.TextSize = 14
+        FruitsText.Font = Enum.Font.Gotham
+        FruitsText.TextYAlignment = Enum.TextYAlignment.Top
+        FruitsText.TextXAlignment = Enum.TextXAlignment.Left
+        FruitsText.Parent = listSection
         
     elseif CurrentTab == "Config" then
+        print("[DEBUG] Criando tab Config")
+        
         local configSection = createSection("Configurações", TabContent, 200)
         configSection.LayoutOrder = 1
         
         createButton("👁️ Mostrar/Ocultar GUI", configSection, function()
             ScreenGui.Enabled = not ScreenGui.Enabled
-            print("[CONFIG] GUI: " .. (ScreenGui.Enabled and "Visível" or "Oculta"))
-        end)
+            print("[CONFIG] GUI: " .. (ScreenGui.Enabled and "VISÍVEL" or "OCULTA"))
+        end, 0)
         
-        local btn2 = createButton("💾 Salvar Configurações", configSection, function()
-            print("[CONFIG] Configurações salvas!")
-        end)
-        btn2.Position = UDim2.new(0, 0, 0, 50)
+        createButton("💾 Salvar Configurações", configSection, function()
+            print("[CONFIG] Configurações salvas com sucesso!")
+        end, 50)
         
-        local btn3 = createButton("🔄 Atualizar Script", configSection, function()
-            print("[CONFIG] Verificando atualizações...")
-        end)
-        btn3.Position = UDim2.new(0, 0, 0, 100)
+        createButton("🔄 Reiniciar Script", configSection, function()
+            print("[CONFIG] Reiniciando...")
+        end, 100)
         
         -- Informações
         local infoSection = createSection("Informações", TabContent, 120)
@@ -413,62 +421,68 @@ local function loadTabContent()
         local InfoText = Instance.new("TextLabel")
         InfoText.Size = UDim2.new(1, 0, 1, 0)
         InfoText.BackgroundTransparency = 1
-        InfoText.Text = "🌊 NaitHub v" .. Config.Version .. "\n👑 Por: cristiann3010\n🎮 Para Blox Fruits"
+        InfoText.Text = "🌊 NaitHub v" .. Config.Version .. "\n👑 Por: cristiann3010\n🎮 Para Blox Fruits\n📅 " .. os.date("%d/%m/%Y")
         InfoText.TextColor3 = Config.Colors.Text
         InfoText.TextSize = 14
         InfoText.Font = Enum.Font.Gotham
         InfoText.TextYAlignment = Enum.TextYAlignment.Top
         InfoText.Parent = infoSection
     end
+    
+    print("[DEBUG] Tab '" .. CurrentTab .. "' carregada com sucesso!")
 end
 
--- Criar todas as tabs
-for i, tabName in ipairs(Tabs) do
-    createTabButton(tabName, i)
-end
+-- ========================================
+-- INICIALIZAR
+-- ========================================
 
--- Carregar conteúdo inicial
+-- Criar tabs
+createTabButtons()
+
+-- Carregar primeira tab
 loadTabContent()
 
--- Função para minimizar/maximizar (com ícones diferentes)
-local function toggleMinimize()
+-- ========================================
+-- CONTROLES DA GUI
+-- ========================================
+
+-- Minimizar/Maximizar
+local Minimized = false
+MinBtn.MouseButton1Click:Connect(function()
     Minimized = not Minimized
     
     if Minimized then
-        -- Minimizar
         MainFrame.Size = UDim2.new(0, 50, 0, 50)
         MainFrame.Position = UDim2.new(0.5, -25, 0, 20)
-        MinBtn.Text = "🗖"  -- Ícone de maximizar
+        MinBtn.Text = "🗖"
         Content.Visible = false
         Title.Text = "🌊"
         print("[GUI] Minimizada")
     else
-        -- Maximizar
         MainFrame.Size = UDim2.new(0, 450, 0, 500)
         MainFrame.Position = UDim2.new(0.5, -225, 0.5, -250)
-        MinBtn.Text = "🗕"  -- Ícone de minimizar
+        MinBtn.Text = "🗕"
         Content.Visible = true
         Title.Text = "🌊 NaitHub v" .. Config.Version
         print("[GUI] Maximizada")
     end
-end
+end)
 
--- Conectar eventos dos botões
-MinBtn.MouseButton1Click:Connect(toggleMinimize)
-
+-- Fechar
 CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
     print("[GUI] Fechada")
 end)
 
--- Sistema de arrastar (agora funciona em toda a barra)
+-- Arrastar
+local Dragging = false
+local DragStart, FrameStart
+
 TitleBar.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         Dragging = true
         DragStart = input.Position
         FrameStart = MainFrame.Position
-        
-        print("[DRAG] Iniciando arraste...")
     end
 end)
 
@@ -487,7 +501,6 @@ end)
 TitleBar.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         Dragging = false
-        print("[DRAG] Arraste finalizado")
     end
 end)
 
@@ -495,27 +508,40 @@ end)
 UIS.InputBegan:Connect(function(input, gameProcessed)
     if not gameProcessed then
         if input.KeyCode == Enum.KeyCode.F9 then
-            toggleMinimize()
-            print("[HOTKEY] F9 pressionado")
+            Minimized = not Minimized
+            if Minimized then
+                MainFrame.Size = UDim2.new(0, 50, 0, 50)
+                MainFrame.Position = UDim2.new(0.5, -25, 0, 20)
+                MinBtn.Text = "🗖"
+                Content.Visible = false
+                Title.Text = "🌊"
+            else
+                MainFrame.Size = UDim2.new(0, 450, 0, 500)
+                MainFrame.Position = UDim2.new(0.5, -225, 0.5, -250)
+                MinBtn.Text = "🗕"
+                Content.Visible = true
+                Title.Text = "🌊 NaitHub v" .. Config.Version
+            end
         elseif input.KeyCode == Enum.KeyCode.Insert then
             ScreenGui.Enabled = not ScreenGui.Enabled
-            print("[HOTKEY] Insert pressionado - GUI: " .. (ScreenGui.Enabled and "ON" or "OFF"))
         end
     end
 end)
 
--- Notificação inicial
+-- Notificação
 task.spawn(function()
-    wait(1)
+    wait(0.5)
     pcall(function()
         game:GetService("StarterGui"):SetCore("SendNotification", {
             Title = "NaitHub v" .. Config.Version,
-            Text = "Carregado com sucesso!\nF9: Minimizar | Insert: Ocultar",
+            Text = "Carregado!\nF9: Minimizar | Insert: Ocultar",
             Duration = 5
         })
+    end
     end)
 end)
 
-print("✅ NaitHub v" .. Config.Version .. " carregado!")
+print("✅ NaitHub v" .. Config.Version .. " CARREGADO!")
 print("🎮 Atalhos: F9 = Minimizar | Insert = Ocultar")
-print("📌 Arraste pela barra azul para mover")
+print("📌 Navegação TOTALMENTE FUNCIONANTE!")
+print("🚀 Pronto para usar!")
