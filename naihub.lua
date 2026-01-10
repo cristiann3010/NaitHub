@@ -1,612 +1,444 @@
--- 🌊 NaitHub PC Edition - Blox Fruits Script
--- Versão: 2.1.0-PC
--- Otimizado para Xeno Executor
--- Autor: cristiann3010
+-- 🌊 NaitHub - Blox Fruits
+-- Versão: 1.0-Stable
+-- Para PC/Executor
 
--- ========================================
--- CONFIGURAÇÕES PC
--- ========================================
-local NAITHUB_CONFIG = {
-    VERSION = "2.1.0-PC",
-    NAME = "NaitHub PC",
-    AUTHOR = "cristiann3010",
-    
-    -- Cores mais vibrantes para PC
-    COLORS = {
-        PRIMARY = Color3.fromRGB(0, 150, 255),     -- Azul mais forte
-        SECONDARY = Color3.fromRGB(45, 45, 60),    -- Fundo escuro
-        BACKGROUND = Color3.fromRGB(20, 20, 30),   -- Fundo principal
-        TEXT = Color3.fromRGB(240, 240, 240),      -- Texto mais claro
-        SUCCESS = Color3.fromRGB(0, 220, 120),     -- Verde brilhante
-        WARNING = Color3.fromRGB(255, 180, 0),     -- Amarelo ouro
-        DANGER = Color3.fromRGB(255, 70, 70)       -- Vermelho forte
-    },
-    
-    -- Tamanho maior para PC
-    GUI = {
-        WIDTH = 500,      -- Mais largo para PC
-        HEIGHT = 600,     -- Mais alto
-        MINIMIZED_SIZE = 60
-    }
-}
-
--- ========================================
--- INICIALIZAÇÃO PC
--- ========================================
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-
+local TweenService = game:GetService("TweenService")
 local Player = Players.LocalPlayer
-local Mouse = Player:GetMouse()
 
--- Sistema de Log PC
-local function log(message, type)
-    local colors = {
-        INFO = Color3.fromRGB(0, 200, 255),
-        SUCCESS = Color3.fromRGB(0, 255, 100),
-        WARNING = Color3.fromRGB(255, 200, 0),
-        ERROR = Color3.fromRGB(255, 50, 50)
-    }
-    
-    local color = colors[type] or Color3.fromRGB(255, 255, 255)
-    print("🌊 [PC] " .. message)
-    return message
-end
+print("🌊 NaitHub inicializando...")
 
-log("Inicializando NaitHub PC Edition v" .. NAITHUB_CONFIG.VERSION, "INFO")
-
--- ========================================
--- FUNÇÕES UTILITÁRIAS PC
--- ========================================
-local PC_Utils = {
-    create = function(className, props)
-        local obj = Instance.new(className)
-        for prop, val in pairs(props) do
-            if prop ~= "Parent" then
-                obj[prop] = val
-            end
-        end
-        if props.Parent then
-            obj.Parent = props.Parent
-        end
-        return obj
-    end,
-    
-    round = function(obj, radius)
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, radius)
-        corner.Parent = obj
-        return corner
-    end,
-    
-    gradient = function(obj, color1, color2)
-        local grad = Instance.new("UIGradient")
-        grad.Color = ColorSequence.new({color1, color2})
-        grad.Rotation = 90
-        grad.Parent = obj
-        return grad
-    end,
-    
-    tween = function(obj, props, duration)
-        local tween = TweenService:Create(obj, TweenInfo.new(duration or 0.3), props)
-        tween:Play()
-        return tween
-    end
-}
-
--- ========================================
--- GUI PRINCIPAL PC
--- ========================================
-local PC_GUI = {
-    screenGui = nil,
-    mainFrame = nil,
-    isMinimized = false,
-    isDragging = false,
-    
-    config = {
-        minimizedSize = UDim2.new(0, 60, 0, 60),
-        maximizedSize = UDim2.new(0, 500, 0, 600),
-        minimizedPosition = UDim2.new(0.5, -30, 0, 10),
-        maximizedPosition = UDim2.new(0.5, -250, 0.5, -300)
+-- Configurações
+local Config = {
+    VERSION = "1.0",
+    Colors = {
+        Main = Color3.fromRGB(0, 120, 215),
+        Dark = Color3.fromRGB(30, 30, 40),
+        Light = Color3.fromRGB(50, 50, 60),
+        Text = Color3.fromRGB(255, 255, 255),
+        Green = Color3.fromRGB(0, 200, 100),
+        Red = Color3.fromRGB(220, 60, 60)
     }
 }
 
--- Criar GUI PC
-function PC_GUI:init()
-    -- ScreenGui com proteção Xeno
-    self.screenGui = PC_Utils.create("ScreenGui", {
-        Name = "NaitHubPC",
-        ResetOnSpawn = false,
-        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-        DisplayOrder = 999
-    })
-    
-    -- Proteção para Xeno
-    if syn and syn.protect_gui then
-        syn.protect_gui(self.screenGui)
-    elseif getgenv().protect_gui then
-        getgenv().protect_gui(self.screenGui)
-    end
-    
-    self.screenGui.Parent = Player:WaitForChild("PlayerGui")
-    
-    -- Frame principal
-    self.mainFrame = PC_Utils.create("Frame", {
-        Name = "MainFrame",
-        Size = self.config.maximizedSize,
-        Position = self.config.maximizedPosition,
-        BackgroundColor3 = NAITHUB_CONFIG.COLORS.BACKGROUND,
-        BackgroundTransparency = 0.05,
-        BorderSizePixel = 0,
-        ClipsDescendants = true,
-        Parent = self.screenGui
-    })
-    
-    PC_Utils.round(self.mainFrame, 15)
-    
-    -- Sombra
-    local shadow = PC_Utils.create("ImageLabel", {
-        Name = "Shadow",
-        Size = UDim2.new(1, 20, 1, 20),
-        Position = UDim2.new(0, -10, 0, -10),
-        BackgroundTransparency = 1,
-        Image = "rbxassetid://1316045217",
-        ImageColor3 = Color3.fromRGB(0, 0, 0),
-        ImageTransparency = 0.7,
-        ScaleType = Enum.ScaleType.Slice,
-        SliceCenter = Rect.new(10, 10, 118, 118),
-        ZIndex = -1,
-        Parent = self.mainFrame
-    })
-    
-    self:createTitleBar()
-    self:createContent()
-    
-    log("GUI PC criada com sucesso", "SUCCESS")
-end
+-- Criar interface
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "NaitHub"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = Player:WaitForChild("PlayerGui")
 
--- Barra de título PC
-function PC_GUI:createTitleBar()
-    local titleBar = PC_Utils.create("Frame", {
-        Name = "TitleBar",
-        Size = UDim2.new(1, 0, 0, 50),
-        BackgroundColor3 = NAITHUB_CONFIG.COLORS.SECONDARY,
-        BorderSizePixel = 0,
-        Parent = self.mainFrame
-    })
-    
-    PC_Utils.round(titleBar, 15)
-    PC_Utils.gradient(titleBar, NAITHUB_CONFIG.COLORS.PRIMARY, Color3.fromRGB(0, 100, 200))
-    
-    -- Título
-    local title = PC_Utils.create("TextLabel", {
-        Name = "Title",
-        Size = UDim2.new(1, -140, 1, 0),
-        Position = UDim2.new(0, 20, 0, 0),
-        BackgroundTransparency = 1,
-        Text = string.format("🚀 %s v%s", NAITHUB_CONFIG.NAME, NAITHUB_CONFIG.VERSION),
-        TextColor3 = NAITHUB_CONFIG.COLORS.TEXT,
-        TextSize = 20,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = titleBar
-    })
-    
-    -- Botões
-    self.minimizeBtn = PC_Utils.create("TextButton", {
-        Name = "MinimizeBtn",
-        Size = UDim2.new(0, 40, 0, 40),
-        Position = UDim2.new(1, -95, 0.5, -20),
-        BackgroundColor3 = NAITHUB_CONFIG.COLORS.PRIMARY,
-        Text = "-",
-        TextColor3 = NAITHUB_CONFIG.COLORS.TEXT,
-        TextSize = 24,
-        Font = Enum.Font.GothamBold,
-        Parent = titleBar
-    })
-    
-    PC_Utils.round(self.minimizeBtn, 10)
-    
-    local closeBtn = PC_Utils.create("TextButton", {
-        Name = "CloseBtn",
-        Size = UDim2.new(0, 40, 0, 40),
-        Position = UDim2.new(1, -45, 0.5, -20),
-        BackgroundColor3 = NAITHUB_CONFIG.COLORS.DANGER,
-        Text = "✕",
-        TextColor3 = NAITHUB_CONFIG.COLORS.TEXT,
-        TextSize = 20,
-        Font = Enum.Font.GothamBold,
-        Parent = titleBar
-    })
-    
-    PC_Utils.round(closeBtn, 10)
-    
-    -- Eventos
-    self.minimizeBtn.MouseButton1Click:Connect(function()
-        self:toggleMinimize()
-    end)
-    
-    closeBtn.MouseButton1Click:Connect(function()
-        self:close()
-    end)
-    
-    -- Arrastar PC
-    local dragStart, frameStart
-    titleBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            self.isDragging = true
-            dragStart = input.Position
-            frameStart = self.mainFrame.Position
-        end
-    end)
-    
-    titleBar.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement and self.isDragging then
-            local delta = input.Position - dragStart
-            self.mainFrame.Position = UDim2.new(
-                frameStart.X.Scale,
-                frameStart.X.Offset + delta.X,
-                frameStart.Y.Scale,
-                frameStart.Y.Offset + delta.Y
-            )
-        end
-    end)
-    
-    titleBar.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            self.isDragging = false
-        end
-    end)
-end
+-- Frame principal
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 450, 0, 500)
+MainFrame.Position = UDim2.new(0.5, -225, 0.5, -250)
+MainFrame.BackgroundColor3 = Config.Colors.Dark
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
 
--- Conteúdo PC
-function PC_GUI:createContent()
-    self.contentFrame = PC_Utils.create("Frame", {
-        Name = "ContentFrame",
-        Size = UDim2.new(1, 0, 1, -50),
-        Position = UDim2.new(0, 0, 0, 50),
-        BackgroundTransparency = 1,
-        Parent = self.mainFrame
-    })
-    
-    self:createTabSystem()
-end
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 12)
+Corner.Parent = MainFrame
 
--- Sistema de Tabs PC
-function PC_GUI:createTabSystem()
-    -- Container de tabs
-    local tabContainer = PC_Utils.create("Frame", {
-        Name = "TabContainer",
-        Size = UDim2.new(1, -30, 0, 50),
-        Position = UDim2.new(0, 15, 0, 10),
-        BackgroundColor3 = NAITHUB_CONFIG.COLORS.SECONDARY,
-        Parent = self.contentFrame
-    })
-    
-    PC_Utils.round(tabContainer, 10)
-    
-    -- Conteúdo das tabs
-    self.tabContent = PC_Utils.create("Frame", {
-        Name = "TabContent",
-        Size = UDim2.new(1, -30, 1, -80),
-        Position = UDim2.new(0, 15, 0, 70),
-        BackgroundTransparency = 1,
-        Parent = self.contentFrame
-    })
-    
-    -- Tabs para PC
-    local tabs = {
-        {name = "Home", icon = "🏠"},
-        {name = "Farm", icon = "⚔️"},
-        {name = "TP", icon = "📍"},
-        {name = "Fruits", icon = "🍎"},
-        {name = "Player", icon = "👤"}
-    }
-    
-    -- Criar tabs
-    for i, tab in ipairs(tabs) do
-        local tabBtn = PC_Utils.create("TextButton", {
-            Name = tab.name .. "Tab",
-            Size = UDim2.new(0.2, -6, 0.8, 0),
-            Position = UDim2.new((i-1) * 0.2, 3, 0.1, 0),
-            BackgroundColor3 = i == 1 and NAITHUB_CONFIG.COLORS.PRIMARY or NAITHUB_CONFIG.COLORS.SECONDARY,
-            Text = tab.icon,
-            TextColor3 = NAITHUB_CONFIG.COLORS.TEXT,
-            TextSize = 18,
-            Font = Enum.Font.GothamBold,
-            Parent = tabContainer
-        })
+-- Barra de título
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 45)
+TitleBar.BackgroundColor3 = Config.Colors.Main
+TitleBar.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 12)
+TitleCorner.Parent = TitleBar
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -100, 1, 0)
+Title.Position = UDim2.new(0, 15, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "🌊 NaitHub v" .. Config.VERSION
+Title.TextColor3 = Config.Colors.Text
+Title.TextSize = 18
+Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TitleBar
+
+-- Botão minimizar
+local MinBtn = Instance.new("TextButton")
+MinBtn.Size = UDim2.new(0, 35, 0, 35)
+MinBtn.Position = UDim2.new(1, -80, 0.5, -17.5)
+MinBtn.BackgroundColor3 = Config.Colors.Light
+MinBtn.Text = "-"
+MinBtn.TextColor3 = Config.Colors.Text
+MinBtn.TextSize = 20
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.Parent = TitleBar
+
+local BtnCorner = Instance.new("UICorner")
+BtnCorner.CornerRadius = UDim.new(0, 8)
+BtnCorner.Parent = MinBtn
+
+-- Botão fechar
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 35, 0, 35)
+CloseBtn.Position = UDim2.new(1, -40, 0.5, -17.5)
+CloseBtn.BackgroundColor3 = Config.Colors.Red
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Config.Colors.Text
+CloseBtn.TextSize = 18
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Parent = TitleBar
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 8)
+CloseCorner.Parent = CloseBtn
+
+-- Conteúdo
+local Content = Instance.new("Frame")
+Content.Size = UDim2.new(1, -20, 1, -65)
+Content.Position = UDim2.new(0, 10, 0, 55)
+Content.BackgroundTransparency = 1
+Content.Parent = MainFrame
+
+-- Tabs
+local Tabs = {"Início", "Farm", "TP", "Frutas", "Config"}
+local CurrentTab = "Início"
+
+-- Criar barra de tabs
+local TabBar = Instance.new("Frame")
+TabBar.Size = UDim2.new(1, 0, 0, 40)
+TabBar.BackgroundTransparency = 1
+TabBar.Parent = Content
+
+-- Conteúdo das tabs
+local TabContent = Instance.new("Frame")
+TabContent.Size = UDim2.new(1, 0, 1, -50)
+TabContent.Position = UDim2.new(0, 0, 0, 50)
+TabContent.BackgroundTransparency = 1
+TabContent.Parent = Content
+
+-- Função para criar botões de tab
+local function createTabButtons()
+    for i, tabName in ipairs(Tabs) do
+        local TabBtn = Instance.new("TextButton")
+        TabBtn.Size = UDim2.new(0.2, -4, 1, 0)
+        TabBtn.Position = UDim2.new((i-1) * 0.2, 2, 0, 0)
+        TabBtn.BackgroundColor3 = tabName == CurrentTab and Config.Colors.Main or Config.Colors.Light
+        TabBtn.Text = tabName
+        TabBtn.TextColor3 = Config.Colors.Text
+        TabBtn.TextSize = 14
+        TabBtn.Font = Enum.Font.Gotham
+        TabBtn.Parent = TabBar
         
-        PC_Utils.round(tabBtn, 8)
+        local TabCorner = Instance.new("UICorner")
+        TabCorner.CornerRadius = UDim.new(0, 6)
+        TabCorner.Parent = TabBtn
         
-        local tabLabel = PC_Utils.create("TextLabel", {
-            Size = UDim2.new(1, 0, 0, 15),
-            Position = UDim2.new(0, 0, 1, 2),
-            BackgroundTransparency = 1,
-            Text = tab.name,
-            TextColor3 = NAITHUB_CONFIG.COLORS.TEXT,
-            TextSize = 11,
-            Font = Enum.Font.Gotham,
-            Parent = tabBtn
-        })
-        
-        tabBtn.MouseButton1Click:Connect(function()
-            self:loadTabContent(tab.name)
+        TabBtn.MouseButton1Click:Connect(function()
+            CurrentTab = tabName
+            loadTabContent()
+            
             -- Atualizar cores
-            for _, child in ipairs(tabContainer:GetChildren()) do
+            for _, child in ipairs(TabBar:GetChildren()) do
                 if child:IsA("TextButton") then
-                    child.BackgroundColor3 = child.Name == tab.name .. "Tab" and 
-                        NAITHUB_CONFIG.COLORS.PRIMARY or NAITHUB_CONFIG.COLORS.SECONDARY
+                    child.BackgroundColor3 = child.Text == CurrentTab and Config.Colors.Main or Config.Colors.Light
                 end
             end
         end)
     end
-    
-    -- Carregar primeira tab
-    self:loadTabContent("Home")
 end
 
--- Carregar conteúdo da tab
-function PC_GUI:loadTabContent(tabName)
-    -- Limpar
-    for _, child in ipairs(self.tabContent:GetChildren()) do
+-- Função para criar seção
+local function createSection(title, parent)
+    local Section = Instance.new("Frame")
+    Section.Size = UDim2.new(1, 0, 0, 0)
+    Section.BackgroundColor3 = Config.Colors.Light
+    Section.Parent = parent
+    
+    local SectionCorner = Instance.new("UICorner")
+    SectionCorner.CornerRadius = UDim.new(0, 8)
+    SectionCorner.Parent = Section
+    
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Size = UDim2.new(1, -20, 0, 30)
+    TitleLabel.Position = UDim2.new(0, 10, 0, 5)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Text = "📌 " .. title
+    TitleLabel.TextColor3 = Config.Colors.Main
+    TitleLabel.TextSize = 14
+    TitleLabel.Font = Enum.Font.GothamBold
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLabel.Parent = Section
+    
+    local ContentFrame = Instance.new("Frame")
+    ContentFrame.Name = "Content"
+    ContentFrame.Size = UDim2.new(1, -20, 1, -40)
+    ContentFrame.Position = UDim2.new(0, 10, 0, 40)
+    ContentFrame.BackgroundTransparency = 1
+    ContentFrame.Parent = Section
+    
+    return ContentFrame
+end
+
+-- Função para carregar conteúdo da tab
+local function loadTabContent()
+    for _, child in ipairs(TabContent:GetChildren()) do
         child:Destroy()
     end
     
-    if tabName == "Home" then
-        self:createHomeTab()
-    elseif tabName == "Farm" then
-        self:createFarmTab()
-    elseif tabName == "TP" then
-        self:createTeleportTab()
-    elseif tabName == "Fruits" then
-        self:createFruitsTab()
-    elseif tabName == "Player" then
-        self:createPlayerTab()
-    end
-end
-
--- Tab: Home
-function PC_GUI:createHomeTab()
-    local scroll = PC_Utils.create("ScrollingFrame", {
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
-        ScrollBarThickness = 8,
-        CanvasSize = UDim2.new(0, 0, 0, 400),
-        Parent = self.tabContent
-    })
+    local Layout = Instance.new("UIListLayout")
+    Layout.Padding = UDim.new(0, 10)
+    Layout.Parent = TabContent
     
-    -- Welcome
-    local welcome = PC_Utils.create("Frame", {
-        Size = UDim2.new(1, 0, 0, 120),
-        BackgroundColor3 = NAITHUB_CONFIG.COLORS.SECONDARY,
-        Parent = scroll
-    })
-    
-    PC_Utils.round(welcome, 12)
-    
-    local welcomeText = PC_Utils.create("TextLabel", {
-        Size = UDim2.new(1, -20, 1, -20),
-        Position = UDim2.new(0, 10, 0, 10),
-        BackgroundTransparency = 1,
-        Text = string.format("🎮 NaitHub PC Edition\nv%s\n\nOtimizado para Xeno Executor\nClique F9 para minimizar",
-            NAITHUB_CONFIG.VERSION),
-        TextColor3 = NAITHUB_CONFIG.COLORS.TEXT,
-        TextSize = 16,
-        Font = Enum.Font.GothamBold,
-        TextYAlignment = Enum.TextYAlignment.Top,
-        TextWrapped = true,
-        Parent = welcome
-    })
-    
-    -- Quick Actions
-    local actions = PC_Utils.create("Frame", {
-        Size = UDim2.new(1, 0, 0, 150),
-        Position = UDim2.new(0, 0, 0, 130),
-        BackgroundTransparency = 1,
-        Parent = scroll
-    })
-    
-    local actionsTitle = PC_Utils.create("TextLabel", {
-        Size = UDim2.new(1, 0, 0, 30),
-        BackgroundTransparency = 1,
-        Text = "⚡ Ações Rápidas",
-        TextColor3 = NAITHUB_CONFIG.COLORS.PRIMARY,
-        TextSize = 16,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = actions
-    })
-    
-    local quickActions = {
-        {"Auto Farm", "⚔️", function() log("Iniciando Auto Farm", "INFO") end},
-        {"TP Boss", "👑", function() log("Teleportando para boss", "INFO") end},
-        {"Buy Fruit", "🍎", function() log("Comprando fruta", "INFO") end},
-        {"Player ESP", "👁️", function() log("ESP ativado", "INFO") end}
-    }
-    
-    for i, action in ipairs(quickActions) do
-        local col = (i-1) % 2
-        local row = math.floor((i-1)/2)
+    if CurrentTab == "Início" then
+        local welcomeSection = createSection("Bem-vindo", TabContent)
+        welcomeSection.Size = UDim2.new(1, 0, 0, 120)
         
-        local btn = PC_Utils.create("TextButton", {
-            Size = UDim2.new(0.5, -5, 0, 50),
-            Position = UDim2.new(col * 0.5, col == 0 and 0 or 5, 0, 35 + row * 55),
-            BackgroundColor3 = NAITHUB_CONFIG.COLORS.SECONDARY,
-            Text = string.format("%s\n%s", action[2], action[1]),
-            TextColor3 = NAITHUB_CONFIG.COLORS.TEXT,
-            TextSize = 14,
-            Font = Enum.Font.Gotham,
-            Parent = actions
-        })
+        local WelcomeText = Instance.new("TextLabel")
+        WelcomeText.Size = UDim2.new(1, 0, 1, 0)
+        WelcomeText.BackgroundTransparency = 1
+        WelcomeText.Text = "🌊 NaitHub v" .. Config.VERSION .. "\n\nPara Blox Fruits\nUse as tabs para navegar"
+        WelcomeText.TextColor3 = Config.Colors.Text
+        WelcomeText.TextSize = 16
+        WelcomeText.Font = Enum.Font.Gotham
+        WelcomeText.TextYAlignment = Enum.TextYAlignment.Top
+        WelcomeText.TextWrapped = true
+        WelcomeText.Parent = welcomeSection
         
-        PC_Utils.round(btn, 10)
+    elseif CurrentTab == "Farm" then
+        local farmSection = createSection("Auto Farm", TabContent)
+        farmSection.Size = UDim2.new(1, 0, 0, 150)
         
-        btn.MouseButton1Click:Connect(action[3])
-    end
-end
-
--- Tab: Farm
-function PC_GUI:createFarmTab()
-    local scroll = PC_Utils.create("ScrollingFrame", {
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
-        ScrollBarThickness = 8,
-        CanvasSize = UDim2.new(0, 0, 0, 300),
-        Parent = self.tabContent
-    })
-    
-    -- Toggle Farm
-    local toggleFrame = PC_Utils.create("Frame", {
-        Size = UDim2.new(1, 0, 0, 80),
-        BackgroundColor3 = NAITHUB_CONFIG.COLORS.SECONDARY,
-        Parent = scroll
-    })
-    
-    PC_Utils.round(toggleFrame, 12)
-    
-    local farmStatus = PC_Utils.create("TextLabel", {
-        Size = UDim2.new(1, -20, 0, 30),
-        Position = UDim2.new(0, 10, 0, 10),
-        BackgroundTransparency = 1,
-        Text = "🛑 Farm Desativado",
-        TextColor3 = NAITHUB_CONFIG.COLORS.TEXT,
-        TextSize = 16,
-        Font = Enum.Font.GothamBold,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = toggleFrame
-    })
-    
-    local toggleBtn = PC_Utils.create("TextButton", {
-        Size = UDim2.new(1, -20, 0, 30),
-        Position = UDim2.new(0, 10, 0, 40),
-        BackgroundColor3 = NAITHUB_CONFIG.COLORS.SUCCESS,
-        Text = "▶️ INICIAR FARM",
-        TextColor3 = NAITHUB_CONFIG.COLORS.TEXT,
-        TextSize = 14,
-        Font = Enum.Font.GothamBold,
-        Parent = toggleFrame
-    })
-    
-    PC_Utils.round(toggleBtn, 8)
-    
-    local farming = false
-    toggleBtn.MouseButton1Click:Connect(function()
-        farming = not farming
-        if farming then
-            farmStatus.Text = "✅ Farm Ativo"
-            toggleBtn.Text = "⏸️ PARAR FARM"
-            toggleBtn.BackgroundColor3 = NAITHUB_CONFIG.COLORS.DANGER
-            log("Auto Farm iniciado", "SUCCESS")
-        else
-            farmStatus.Text = "🛑 Farm Desativado"
-            toggleBtn.Text = "▶️ INICIAR FARM"
-            toggleBtn.BackgroundColor3 = NAITHUB_CONFIG.COLORS.SUCCESS
-            log("Auto Farm parado", "WARNING")
+        local Status = Instance.new("TextLabel")
+        Status.Size = UDim2.new(1, 0, 0, 30)
+        Status.BackgroundTransparency = 1
+        Status.Text = "🛑 Farm Desativado"
+        Status.TextColor3 = Config.Colors.Text
+        Status.TextSize = 16
+        Status.Font = Enum.Font.GothamBold
+        Status.Parent = farmSection
+        
+        local ToggleBtn = Instance.new("TextButton")
+        ToggleBtn.Size = UDim2.new(1, 0, 0, 40)
+        ToggleBtn.Position = UDim2.new(0, 0, 0, 40)
+        ToggleBtn.BackgroundColor3 = Config.Colors.Green
+        ToggleBtn.Text = "▶️ INICIAR FARM"
+        ToggleBtn.TextColor3 = Config.Colors.Text
+        ToggleBtn.TextSize = 14
+        ToggleBtn.Font = Enum.Font.GothamBold
+        ToggleBtn.Parent = farmSection
+        
+        local ToggleCorner = Instance.new("UICorner")
+        ToggleCorner.CornerRadius = UDim.new(0, 8)
+        ToggleCorner.Parent = ToggleBtn
+        
+        local farming = false
+        ToggleBtn.MouseButton1Click:Connect(function()
+            farming = not farming
+            if farming then
+                Status.Text = "✅ Farm Ativo"
+                ToggleBtn.Text = "⏸️ PARAR FARM"
+                ToggleBtn.BackgroundColor3 = Config.Colors.Red
+                print("Farm iniciado")
+            else
+                Status.Text = "🛑 Farm Desativado"
+                ToggleBtn.Text = "▶️ INICIAR FARM"
+                ToggleBtn.BackgroundColor3 = Config.Colors.Green
+                print("Farm parado")
+            end
+        end)
+        
+    elseif CurrentTab == "TP" then
+        local tpSection = createSection("Teleportes", TabContent)
+        
+        local Scroll = Instance.new("ScrollingFrame")
+        Scroll.Size = UDim2.new(1, 0, 0, 250)
+        Scroll.BackgroundTransparency = 1
+        Scroll.ScrollBarThickness = 6
+        Scroll.CanvasSize = UDim2.new(0, 0, 0, 400)
+        Scroll.Parent = tpSection
+        
+        local Locations = {
+            "Praça Inicial",
+            "Vila Pirata", 
+            "Base Marines",
+            "Coliseu",
+            "Deserto",
+            "Vila Inverno",
+            "Magma Village"
+        }
+        
+        for i, loc in ipairs(Locations) do
+            local Btn = Instance.new("TextButton")
+            Btn.Size = UDim2.new(1, 0, 0, 40)
+            Btn.Position = UDim2.new(0, 0, 0, (i-1) * 45)
+            Btn.BackgroundColor3 = i % 2 == 0 and Config.Colors.Light or Color3.fromRGB(40, 40, 50)
+            Btn.Text = "📍 " .. loc
+            Btn.TextColor3 = Config.Colors.Text
+            Btn.TextSize = 14
+            Btn.Font = Enum.Font.Gotham
+            Btn.TextXAlignment = Enum.TextXAlignment.Left
+            Btn.Parent = Scroll
+            
+            local BtnCorner = Instance.new("UICorner")
+            BtnCorner.CornerRadius = UDim.new(0, 6)
+            BtnCorner.Parent = Btn
+            
+            Btn.MouseButton1Click:Connect(function()
+                print("TP para: " .. loc)
+            end)
         end
-    end)
-end
-
--- Tab: TP
-function PC_GUI:createTeleportTab()
-    local scroll = PC_Utils.create("ScrollingFrame", {
-        Size = UDim2.new(1, 0, 1, 0),
-        BackgroundTransparency = 1,
-        ScrollBarThickness = 8,
-        CanvasSize = UDim2.new(0, 0, 0, 400),
-        Parent = self.tabContent
-    })
-    
-    local locations = {
-        {"🏠", "Spawn"},
-        {"⚓", "Pirate Village"},
-        {"⚖️", "Marine Base"},
-        {"🏟️", "Colosseum"},
-        {"❄️", "Snow Village"},
-        {"🌋", "Magma Village"},
-        {"🐉", "Dragon Island"},
-        {"👻", "Graveyard"}
-    }
-    
-    for i, loc in ipairs(locations) do
-        local btn = PC_Utils.create("TextButton", {
-            Size = UDim2.new(1, 0, 0, 45),
-            Position = UDim2.new(0, 0, 0, (i-1) * 50),
-            BackgroundColor3 = i % 2 == 0 and NAITHUB_CONFIG.COLORS.SECONDARY or Color3.fromRGB(50, 50, 65),
-            Text = string.format("  %s  %s", loc[1], loc[2]),
-            TextColor3 = NAITHUB_CONFIG.COLORS.TEXT,
-            TextSize = 16,
-            Font = Enum.Font.Gotham,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            Parent = scroll
-        })
         
-        PC_Utils.round(btn, 8)
+    elseif CurrentTab == "Frutas" then
+        local fruitSection = createSection("Frutas", TabContent)
         
-        btn.MouseButton1Click:Connect(function()
-            log("Teleportando para: " .. loc[2], "INFO")
-            PC_Utils.tween(btn, {BackgroundColor3 = NAITHUB_CONFIG.COLORS.PRIMARY}, 0.1)
-            task.wait(0.1)
-            PC_Utils.tween(btn, {BackgroundColor3 = i % 2 == 0 and NAITHUB_CONFIG.COLORS.SECONDARY or Color3.fromRGB(50, 50, 65)}, 0.1)
+        local Btn1 = Instance.new("TextButton")
+        Btn1.Size = UDim2.new(1, 0, 0, 40)
+        Btn1.BackgroundColor3 = Config.Colors.Main
+        Btn1.Text = "🍎 Comprar Fruta Aleatória"
+        Btn1.TextColor3 = Config.Colors.Text
+        Btn1.TextSize = 14
+        Btn1.Font = Enum.Font.Gotham
+        Btn1.Parent = fruitSection
+        
+        local Btn1Corner = Instance.new("UICorner")
+        Btn1Corner.CornerRadius = UDim.new(0, 8)
+        Btn1Corner.Parent = Btn1
+        
+        local Btn2 = Instance.new("TextButton")
+        Btn2.Size = UDim2.new(1, 0, 0, 40)
+        Btn2.Position = UDim2.new(0, 0, 0, 50)
+        Btn2.BackgroundColor3 = Config.Colors.Main
+        Btn2.Text = "📦 Armazenar Fruta"
+        Btn2.TextColor3 = Config.Colors.Text
+        Btn2.TextSize = 14
+        Btn2.Font = Enum.Font.Gotham
+        Btn2.Parent = fruitSection
+        
+        local Btn2Corner = Instance.new("UICorner")
+        Btn2Corner.CornerRadius = UDim.new(0, 8)
+        Btn2Corner.Parent = Btn2
+        
+        Btn1.MouseButton1Click:Connect(function()
+            print("Comprando fruta aleatória...")
+        end)
+        
+        Btn2.MouseButton1Click:Connect(function()
+            print("Armazenando fruta...")
+        end)
+        
+    elseif CurrentTab == "Config" then
+        local configSection = createSection("Configurações", TabContent)
+        
+        local HideBtn = Instance.new("TextButton")
+        HideBtn.Size = UDim2.new(1, 0, 0, 40)
+        HideBtn.BackgroundColor3 = Config.Colors.Main
+        HideBtn.Text = "👁️ Mostrar/Ocultar Interface"
+        HideBtn.TextColor3 = Config.Colors.Text
+        HideBtn.TextSize = 14
+        HideBtn.Font = Enum.Font.Gotham
+        HideBtn.Parent = configSection
+        
+        local HideCorner = Instance.new("UICorner")
+        HideCorner.CornerRadius = UDim.new(0, 8)
+        HideCorner.Parent = HideBtn
+        
+        HideBtn.MouseButton1Click:Connect(function()
+            ScreenGui.Enabled = not ScreenGui.Enabled
+            print("Interface: " .. (ScreenGui.Enabled and "Visível" or "Oculta"))
         end)
     end
 end
 
+-- Inicializar tabs
+createTabButtons()
+loadTabContent()
+
 -- Minimizar/Maximizar
-function PC_GUI:toggleMinimize()
-    self.isMinimized = not self.isMinimized
+local Minimized = false
+MinBtn.MouseButton1Click:Connect(function()
+    Minimized = not Minimized
     
-    if self.isMinimized then
-        PC_Utils.tween(self.mainFrame, {Size = self.config.minimizedSize}, 0.3)
-        PC_Utils.tween(self.mainFrame, {Position = self.config.minimizedPosition}, 0.3)
-        self.minimizeBtn.Text = "+"
-        self.contentFrame.Visible = false
-        log("Minimizado", "INFO")
+    if Minimized then
+        MainFrame.Size = UDim2.new(0, 50, 0, 50)
+        MainFrame.Position = UDim2.new(0.5, -25, 0, 20)
+        MinBtn.Text = "+"
+        Content.Visible = false
+        Title.Text = "🌊"
     else
-        PC_Utils.tween(self.mainFrame, {Size = self.config.maximizedSize}, 0.3)
-        PC_Utils.tween(self.mainFrame, {Position = self.config.maximizedPosition}, 0.3)
-        self.minimizeBtn.Text = "-"
-        self.contentFrame.Visible = true
-        log("Maximizado", "INFO")
+        MainFrame.Size = UDim2.new(0, 450, 0, 500)
+        MainFrame.Position = UDim2.new(0.5, -225, 0.5, -250)
+        MinBtn.Text = "-"
+        Content.Visible = true
+        Title.Text = "🌊 NaitHub v" .. Config.VERSION
     end
-end
+end)
 
 -- Fechar
-function PC_GUI:close()
-    PC_Utils.tween(self.mainFrame, {Size = UDim2.new(0, 0, 0, 0)}, 0.3)
-    task.wait(0.3)
-    self.screenGui:Destroy()
-    log("Fechado", "INFO")
-end
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+    print("NaitHub fechado")
+end)
 
--- ========================================
--- INICIAR
--- ========================================
-PC_GUI:init()
+-- Arrastar
+local Dragging, DragStart, FrameStart
+TitleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        Dragging = true
+        DragStart = input.Position
+        FrameStart = MainFrame.Position
+    end
+end)
 
--- Atalhos PC
+TitleBar.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and Dragging then
+        local Delta = input.Position - DragStart
+        MainFrame.Position = UDim2.new(
+            FrameStart.X.Scale,
+            FrameStart.X.Offset + Delta.X,
+            FrameStart.Y.Scale,
+            FrameStart.Y.Offset + Delta.Y
+        )
+    end
+end)
+
+TitleBar.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        Dragging = false
+    end
+end)
+
+-- Atalhos de teclado
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if not gameProcessed then
         if input.KeyCode == Enum.KeyCode.F9 then
-            PC_GUI:toggleMinimize()
-        elseif input.KeyCode == Enum.KeyCode.RightControl then
-            PC_GUI.screenGui.Enabled = not PC_GUI.screenGui.Enabled
-            log("GUI " .. (PC_GUI.screenGui.Enabled and "visível" or "oculta"), "INFO")
+            Minimized = not Minimized
+            if Minimized then
+                MainFrame.Size = UDim2.new(0, 50, 0, 50)
+                MainFrame.Position = UDim2.new(0.5, -25, 0, 20)
+                MinBtn.Text = "+"
+                Content.Visible = false
+                Title.Text = "🌊"
+            else
+                MainFrame.Size = UDim2.new(0, 450, 0, 500)
+                MainFrame.Position = UDim2.new(0.5, -225, 0.5, -250)
+                MinBtn.Text = "-"
+                Content.Visible = true
+                Title.Text = "🌊 NaitHub v" .. Config.VERSION
+            end
+        elseif input.KeyCode == Enum.KeyCode.Insert then
+            ScreenGui.Enabled = not ScreenGui.Enabled
+            print("Interface: " .. (ScreenGui.Enabled and "Visível" or "Oculta"))
         end
     end
 end)
 
--- Mensagem final
-log(string.format("✅ %s v%s carregado!", NAITHUB_CONFIG.NAME, NAITHUB_CONFIG.VERSION), "SUCCESS")
-log("F9: Minimizar/Maximizar | RightCtrl: Mostrar/Ocultar", "INFO")
-log("Arraste pela barra de título para mover", "INFO")
-
 -- Notificação inicial
-game.StarterGui:SetCore("SendNotification", {
-    Title = "NaitHub PC",
-    Text = "Script carregado com sucesso!\nPressione F9 para abrir.",
-    Duration = 5,
-    Icon = "rbxassetid://4483345998"
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "NaitHub v" .. Config.VERSION,
+    Text = "Carregado com sucesso!\nF9: Minimizar\nInsert: Ocultar",
+    Duration = 5
 })
+
+print("✅ NaitHub v" .. Config.VERSION .. " carregado!")
+print("📌 F9: Minimizar/Maximizar")
+print("📌 Insert: Mostrar/Ocultar")
+print("📌 Arraste pela barra azul para mover")
